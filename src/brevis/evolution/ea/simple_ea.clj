@@ -28,30 +28,58 @@
     (add-object (assoc (make-abstract {:type :ea-individual})
                        :genome ((get-param :init-genome-fn))))))
 
+#_(defn update-population
+   "Update a population by evaluating all individuals."
+   []
+   ; Evaluate
+   (doseq [obj (all-objects)]
+     (let [fitness ((get-param :fitness-function) (:genome obj))]
+       (set-object (get-uid obj)
+                   (assoc obj
+                          :fitness fitness))))
+   ; Select/vary
+   (let [child-genomes (for [k (range (get-param :population-size))]
+                         (let [parent-genome (:genome (first (select-with (all-objects) 
+                                                                          :fitness 
+                                                                          :selection-method (get-param :selection-method))))
+                               r (lrand)]
+                           (cond (< r (get-param :mutation-probability))
+                                 ((get-param :mutate-genome-fn) parent-genome)
+                                 :else
+                                 parent-genome)))
+         uids (all-object-uids)]
+     (dotimes [k (count child-genomes)]
+       (set-object (nth uids k)
+                   (assoc (get-object (nth uids k)) 
+                          :genome (nth child-genomes k))))))
+
 (defn update-population
-  "Update a population by evaluating all individuals."
-  []
-  ; Evaluate
-  (doseq [obj (all-objects)]
-    (let [fitness ((get-param :fitness-function) (:genome obj))]
-      (set-object (get-uid obj)
-                  (assoc obj
-                         :fitness fitness))))
-  ; Select/vary
-  (let [child-genomes (for [k (range (get-param :population-size))]
-                        (let [parent-genome (:genome (first (select-with (all-objects) 
-                                                                         :fitness 
-                                                                         :selection-method (get-param :selection-method))))
-                              r (lrand)]
-                          (cond (< r (get-param :mutation-probability))
-                                ((get-param :mutate-genome-fn) parent-genome)
-                                :else
-                                parent-genome)))
-        uids (all-object-uids)]
-    (dotimes [k (count child-genomes)]
-      (set-object (nth uids k)
-                  (assoc (get-object (nth uids k)) 
-                         :genome (nth child-genomes k))))))
+   "Update a population by evaluating all individuals."
+   []
+   ; Evaluate
+   (doseq [obj (all-objects)]
+     (let [fitness ((get-param :fitness-function) (:genome obj))]
+       (set-object (get-uid obj)
+                   (assoc obj
+                          :fitness fitness))))
+   ; Select/vary
+   (let [parent-genomes (map :genome
+                             (select-with (all-objects) 
+                                          :fitness 
+                                          :selection-method (get-param :selection-method)
+                                          :n (get-param :population-size)))
+         child-genomes (for [k (range (get-param :population-size))]
+                         (let [parent-genome (nth parent-genomes k)
+                               r (lrand)]
+                           (cond (< r (get-param :mutation-probability))
+                                 ((get-param :mutate-genome-fn) parent-genome)
+                                 :else
+                                 parent-genome)))
+         uids (all-object-uids)]
+     (dotimes [k (count child-genomes)]
+       (set-object (nth uids k)
+                   (assoc (get-object (nth uids k)) 
+                          :genome (nth child-genomes k))))))
 
 (defn report-population
   "Report on the state of the population."

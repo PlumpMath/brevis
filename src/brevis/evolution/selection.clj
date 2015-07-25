@@ -42,3 +42,7 @@
                          (let [idx (roulette wheel)]
                            (nth population idx)))]
           selected)))
+
+#_(let [pop-size 1000
+       population (map vector (range pop-size) (repeatedly #(lrand-nth [ 0.1 1 2])))]
+   (frequencies (map second (select-with population second :selection-method {:method :roulette} :n 1000))))

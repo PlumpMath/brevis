@@ -1,7 +1,7 @@
 (ns brevis.graphics.basic-3D
   (:import [java.lang.Math]
            [java.nio ByteBuffer ByteOrder]
-           [org.lwjgl.opengl GL11]
+           ;[org.lwjgl.opengl GL11]
            [brevis BrObject]
            [brevis.graphics Basic3D BrSky])
   (:use [brevis globals]

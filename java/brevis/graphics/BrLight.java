@@ -27,20 +27,9 @@ public class BrLight {
 	private final FloatBuffer light_diffuse = BufferUtils.createFloatBuffer(4);
 	private final FloatBuffer light_specular = BufferUtils.createFloatBuffer(4);
 	
-	/*static {
-		light_position.put(new float[] { LIGHTX, LIGHTY, 1.0f, 0.0f }).flip();
-		light_ambient.put(new float[]{ 0.5f, 0.5f, 0.5f, 1.0f }).flip();
-		light_diffuse.put(new float[] { 1.0f, 1.0f, 1.0f, 1.0f }).flip();
-		light_specular.put(new float[] { 1.0f, 1.0f, 1.0f, 1.0f }).flip();
-	}*/	
-	
 	public int glLightId;
 	
 	public BrLight( int id ) {
-		/*floatBuffer = ByteBuffer.allocateDirect(64);
-        floatBuffer.order(ByteOrder.nativeOrder());
-        byteBuffer = ByteBuffer.allocateDirect(16);
-        byteBuffer.order(ByteOrder.nativeOrder());*/
 		light_position.put( lightPos ).flip();
 		light_ambient.put( lightAmb ).flip();
 		light_diffuse.put( lightDif ).flip();
@@ -51,13 +40,6 @@ public class BrLight {
 	static int[] glLightTable = { GL11.GL_LIGHT0, GL11.GL_LIGHT1, GL11.GL_LIGHT2, GL11.GL_LIGHT3, GL11.GL_LIGHT4, GL11.GL_LIGHT5, GL11.GL_LIGHT6, GL11.GL_LIGHT7 };
 
 	public void enable() {
-	    /*GL11.glEnable(GL11.GL_LIGHT1);                                // Enable Light1                                                                      
-	    GL11.glEnable(GL11.GL_LIGHTING);                              // Enable Lighting
-		GL11.glLight(GL11.GL_LIGHT1, GL11.GL_POSITION, light_position );        // Set Light1 Position         
-	    GL11.glLight(GL11.GL_LIGHT1, GL11.GL_AMBIENT, light_ambient );         // Set Light1 Ambience         
-	    GL11.glLight(GL11.GL_LIGHT1, GL11.GL_DIFFUSE, light_diffuse );         // Set Light1 Diffuse          
-	    GL11.glLight(GL11.GL_LIGHT1, GL11.GL_SPECULAR, light_specular );        // Set Light1 Specular*/
-	    
 		GL11.glEnable( glLightTable[glLightId] );                                // Enable Light1                                                                      
 	    GL11.glEnable( GL11.GL_LIGHTING );                              // Enable Lighting
 		GL11.glLight( glLightTable[glLightId], GL11.GL_POSITION, light_position );        // Set Light1 Position         
@@ -65,11 +47,7 @@ public class BrLight {
 	    GL11.glLight( glLightTable[glLightId], GL11.GL_DIFFUSE, light_diffuse );         // Set Light1 Diffuse          
 	    GL11.glLight( glLightTable[glLightId], GL11.GL_SPECULAR, light_specular );        // Set Light1 Specular
 	}
-	
-	/*public void setPosition() {
-		GL11.glLight(GL11.GL_LIGHT1, GL11.GL_POSITION, light_position );        // Set Light1 Position         
-	}*/
-	
+		
 	/**
 	 * Set the ambient color of this light
 	 * @param newAmb

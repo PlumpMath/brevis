@@ -53,27 +53,14 @@ public class Basic3D {
     static float matShn[] = {0.0f, 0.0f, 0.0f, 0.0f};                                // Material - Shininess                                                       
     
     static public int width = 640;
-    static public int height = 480;        
-    
-    /*private static final FloatBuffer light_position =  BufferUtils.createFloatBuffer(4);
-	private static final FloatBuffer light_ambient = BufferUtils.createFloatBuffer(4);
-	private static final FloatBuffer light_diffuse = BufferUtils.createFloatBuffer(4);
-	private static final FloatBuffer light_specular = BufferUtils.createFloatBuffer(4);
-	static {
-		//light_position.put(new float[] { LIGHTX, LIGHTY, 1.0f, 0.0f }).flip();
-		light_position.put(new float[] { 50.0f, 200.0f, 50.0f, 0.0f }).flip();
-		light_ambient.put(new float[]{ 0.5f, 0.5f, 0.5f, 1.0f }).flip();
-		light_diffuse.put(new float[] { 1.0f, 1.0f, 1.0f, 1.0f }).flip();
-		light_specular.put(new float[] { 1.0f, 1.0f, 1.0f, 1.0f }).flip();
-	}*/
+    static public int height = 480;            
     
     static private float[] view_xyz = new float[3];	// position x,y,z
 	static private float[] view_hpr = new float[3];	// heading, pitch, roll (degrees)
     
-	//static BrLight light1 = new BrLight();// should probably have a light array
 	
 	static ArrayList<BrLight> lights = new ArrayList<BrLight>();
-	static { 
+	static {// Let's make at least 1 light 
 		lights.add( new BrLight( 0 ) );
 	}
 	
@@ -87,12 +74,13 @@ public class Basic3D {
 	private static int shadowRenderBuffer;
 	
 	public static void addLight( ) {
-		lights.add( new BrLight( lights.size() ) );
+		if( lights.size() < 8 )
+			lights.add( new BrLight( lights.size() ) );
+		else
+			System.err.println( "Cannot create more than 8 lights due to OpenGL restrictions." );
 	}
 	
 	public static void lightMove( int lightNum, float[] position ) {
-		//light_position.put( position ).flip();
-		//light1.setPosition( position );
 		lights.get(lightNum).setPosition( position );
 	}	
 	

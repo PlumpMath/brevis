@@ -49,7 +49,7 @@ public class BrMesh implements Serializable {
 	public ArrayList<int[]> facestexs = new ArrayList<int[]>(); // Array of of Faces textures
 	public ArrayList<int[]> facesnorms = new ArrayList<int[]>(); // Array of Faces normals
 	
-	private int objectlist;
+	private int objectlist = -1;
 	private int numpolys = 0;
 	
 	//// Statisitcs for drawing ////
@@ -106,9 +106,9 @@ public class BrMesh implements Serializable {
 	
 	public BrMesh() {
 		
-	}
-
-	public BrMesh(List<Vector3f> verts) {		
+	}	
+	
+	public BrMesh( List<Vector3f> verts, boolean drawnow ) {		
 		cleanup();
 
 		boolean firstpass = true;
@@ -179,8 +179,13 @@ public class BrMesh implements Serializable {
 			facestexs.add( vt );
 		}
 		centerit();	
-		opengldrawtolist();
+		if( drawnow )
+			opengldrawtolist();
 		numpolys = faces.size();
+	}
+	
+	public BrMesh( List<Vector3f> verts ) {
+		this( verts, true );
 	}
 	
 	@SuppressWarnings("unused")
@@ -312,6 +317,13 @@ public class BrMesh implements Serializable {
 			vertexsets.set(i,coords); // = coords;
 		}
 		
+		rightpoint -= leftpoint + xshift;
+		leftpoint -= leftpoint + xshift;
+		toppoint -= bottompoint + yshift;
+		bottompoint -= bottompoint + yshift;
+		nearpoint -= farpoint + zshift;
+		farpoint -= farpoint + zshift;
+		
 		// Should update bounding coordinates now
 		
 	}
@@ -396,6 +408,8 @@ public class BrMesh implements Serializable {
 	}
 	
 	public void opengldraw() {
+		if( objectlist == -1 )
+			opengldrawtolist();	
 		GL11.glCallList(objectlist);
 	}
 	
@@ -465,6 +479,10 @@ public class BrMesh implements Serializable {
 		facesnorms.clear();
 	}
 	
+	public int getGLDrawListID() {
+		return objectlist;
+	}
+	
 	public int numVertices() {
 		return vertexsets.size();
 	}
@@ -519,9 +537,9 @@ public class BrMesh implements Serializable {
 	
 	public float[] getFaceNormal( int idx ) {
 		float[] n = new float[3];
-		float[] n1 = vertexsetsnorms.get( facesnorms.get(idx)[0] );
-		float[] n2 = vertexsetsnorms.get( facesnorms.get(idx)[1] );
-		float[] n3 = vertexsetsnorms.get( facesnorms.get(idx)[2] );
+		float[] n1 = vertexsetsnorms.get( facesnorms.get(idx)[0]-1 );
+		float[] n2 = vertexsetsnorms.get( facesnorms.get(idx)[1]-1 );
+		float[] n3 = vertexsetsnorms.get( facesnorms.get(idx)[2]-1 );
 		
 		n[0] = n1[0] + n2[0] + n3[0];
 		n[1] = n1[1] + n2[1] + n3[1];

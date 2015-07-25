@@ -155,9 +155,9 @@ public class BrShape implements Serializable {
 		//loadMesh( filename, isResource, withGraphics );
 	}
 	
-	BrShape( List<Vector3f> verts ) {
+	BrShape( List<Vector3f> verts, boolean drawnow ) {
 		type = BrShapeType.MESH;
-		loadMesh( verts );
+		loadMesh( verts, drawnow );
 		dim = new Vector3f( 1, 1, 1 );
 		computeCenter();
 	}
@@ -374,9 +374,9 @@ public class BrShape implements Serializable {
 		loadMesh( filename, isResource, withGraphics );
 	}
 	
-	public void loadMesh( List<Vector3f> verts ) {
+	public void loadMesh( List<Vector3f> verts, boolean drawnow ) {
 		try {
-			mesh = new BrMesh( verts );			
+			mesh = new BrMesh( verts, drawnow );			
 					
 			if( mesh.numpolygons() == 0 ) {
 				System.out.println("Found 0 faces when loading vert series." );
@@ -481,7 +481,7 @@ public class BrShape implements Serializable {
 	public static BrShape createMeshFromTriangles( List<Vector3f> verts ) {
 		//System.out.println( filename );
 		//return ( new BrShape( filename, isResource, withGraphics ) );
-		return ( new BrShape( verts ) );
+		return ( new BrShape( verts, false ) );
 	}
 	
 	public static BrShape createSphere( double r, boolean withGraphics ) {

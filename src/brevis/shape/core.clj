@@ -1,7 +1,8 @@
 (ns brevis.shape.core
   (:import [java.awt.image BufferedImage]
            [java.awt Color])
-  (:use [brevis vector])
+  (:use [brevis vector]
+        [brevis.graphics multithread])
   (:import [org.lwjgl.util.vector Vector3f Vector4f]))  
 
 (defn compute-normal
@@ -26,6 +27,14 @@
   "Return the shape of an object."
   [obj]
   (.getShape ^brevis.BrObject obj))
+
+(defn set-shape 
+  "Return the shape of an object."
+  [obj ^brevis.BrShape shp]
+  (begin-with-graphics-thread)
+  (.setShape ^brevis.BrObject obj shp)
+  (end-with-graphics-thread)
+  obj)
 
 (defn resize-shape
   "Change the dimension of an object's shape."
