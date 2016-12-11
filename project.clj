@@ -33,7 +33,7 @@
                  [kephale/slick-util "1.0.1"]; This can probably be factored out now
                  ;[org.l33tlabs.twl/pngdecoder "1.0"]          
                  
-                 ;[net.clearvolume/scenery "1.0-SNAPSHOT"]
+                 [graphics.scenery/scenery "1.0.0-SNAPSHOT"]
                  ;[net.clearvolume/scenery "1.0-SNAPSHOT" :classifier "tests"]
                  ;[net.clearvolume/cleargl "1.0-SNAPSHOT"]
                  ;[scenery/openvr "0.1"]

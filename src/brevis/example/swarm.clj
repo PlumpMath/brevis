@@ -1,6 +1,5 @@
 (ns brevis.example.swarm
   (:gen-class)
-  #_(:use [brevis.ns everything])
   (:use [brevis.graphics.basic-3D]
         [brevis.physics collision core space utils]
         [brevis.shape box sphere cone]
