@@ -182,6 +182,8 @@
     (.setActive cam true)
     (scenery/add-child cam))
   
+  (set! brevis.BrShape/objDir "/Users/kharrington/git/brevis/resources/obj/")
+  
   ;(swap! brevis.globals/*gui-state* assoc :gui false)
   (init-world)
   (init-view)  

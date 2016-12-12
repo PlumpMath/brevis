@@ -356,8 +356,11 @@ public class BrShape implements Serializable {
 				filename = objDir + filename;
 			//System.out.println( "Loading object: " + filename );			
 			
-			//if( isResource ) {			
+			if( isResource ) {
+				
+			}
 			mesh = new Mesh();
+			
 			mesh.readFromOBJ( filename, false );
 					
 			dim = new GLVector( 1, 1, 1 );

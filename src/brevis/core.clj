@@ -35,8 +35,8 @@
     (.useDefaultBindings ih (str (System/getProperty "user.home") "/.brevis.bindings"))
     (input-setup)
     (loop []
-      (when-not (.-shouldClose renderer)
-        (if (.-managesRenderLoop renderer) 
+      (when-not (.getShouldClose (scenery/get-renderer))
+        (if (.getManagesRenderLoop (scenery/get-renderer)) 
           (java.lang.Thread/sleep 2)
           (.render renderer))))))
 
@@ -48,7 +48,7 @@
   ([initialize]
     (start-gui initialize java-update-world))    
   ([initialize update]
-    (start-gui initialize update default-input-handlers))
+    (start-gui initialize update (fn [] nil)))
   ([initialize update input-handlers]
 	  (reset! *app-thread*
            (Thread. (fn [] (simulate initialize update input-handlers))))

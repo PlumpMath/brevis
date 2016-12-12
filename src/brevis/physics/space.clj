@@ -2,12 +2,11 @@
   (:gen-class)
   (:import (org.ode4j.ode OdeHelper DSapSpace OdeConstants DContactBuffer DGeom DFixedJoint DContactJoint))  (:import (org.ode4j.math DVector3))  (:import java.lang.Math)  
   (:import (brevis Engine BrPhysics BrObject))
-  (:import (org.lwjgl.opengl GL32))
-  (:import (org.lwjgl.util.vector Vector4f Vector3f))
   (:use [brevis vector utils globals]
         [brevis.shape core box]
         [brevis.physics core collision utils])
-  (:require [clojure.java.io]))
+  (:require [clojure.java.io]
+            [brevis.graphics.scenery :as scenery]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ## Real/Physical/Spatial
@@ -33,6 +32,9 @@
     (.setType brobj (str (name (:type obj))))
     (.setShape brobj (:shape obj))    
     (.makeReal brobj @*java-engine*)
+    (when (and (get-shape brobj)
+               (get-mesh (get-shape brobj)))
+      (scenery/add-child (get-mesh (get-shape brobj))))
     brobj))
 
 (defn recreate-physics-geom
@@ -43,7 +45,7 @@
 
 (defn orient-object
   "Orient an object by changing its rotation such that its vertex points towards a target vector."
-  [^BrObject obj ^org.lwjgl.util.vector.Vector3f obj-vec ^org.lwjgl.util.vector.Vector3f target-vec]
+  [^BrObject obj obj-vec target-vec]
   (if (or (zero? (length obj-vec)) 
                 (zero? (length target-vec)))
     obj
@@ -52,7 +54,7 @@
 
 (defn set-rotation
   "Set the rotation of an object directly using a quaternion."
-  [^BrObject obj ^Vector4f v]
+  [^BrObject obj v]
   (.setRotation obj v)
   obj)
 

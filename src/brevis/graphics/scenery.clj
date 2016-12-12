@@ -6,7 +6,7 @@
            [brevis.graphics Basic3D BrSky])
   (:use ;[brevis globals]
         [brevis.physics utils]
-        [brevis.shape core box sphere cone])
+        #_[brevis.shape core box sphere cone])
   (:require [clojure.java.io]
             [brevis.parameters :as parameters]
             [brevis.globals :as globals])) 

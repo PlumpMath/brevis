@@ -1,6 +1,7 @@
 (ns brevis.shape.cone
   (:import [brevis BrShape])
-  (:require [brevis.parameters :as parameters])
+  (:require [brevis.parameters :as parameters]
+            [brevis.graphics.scenery :as scenery])
   (:use [brevis vector]
         [brevis.shape.core])) 
 
@@ -10,4 +11,3 @@
      (create-cone 1 1))
   ([length base]
     (BrShape/createCone length base (parameters/get-param :gui) #_(:gui @brevis.globals/*gui-state*))))
-      

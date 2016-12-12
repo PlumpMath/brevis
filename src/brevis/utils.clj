@@ -6,8 +6,6 @@
   (:use [brevis globals]
         [brevis.physics core]))
 
-
-
 (defn get-time
   "Return the current time."
   []
@@ -31,7 +29,7 @@
 (defn add-object
   "Add an object to the current world."
   [^BrObject obj]
-  (.addObject ^brevis.Engine @*java-engine* (get-uid obj) ^BrObject obj) 
+  (.addObject ^brevis.Engine @*java-engine* (get-uid obj) ^BrObject obj)  
   obj)
 
 (defn del-object
