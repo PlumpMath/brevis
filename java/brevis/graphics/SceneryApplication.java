@@ -3,7 +3,6 @@ package brevis.graphics;
 import cleargl.GLVector;
 import scenery.*;
 import scenery.backends.Renderer;
-import scenery.repl.REPL;
 
 public class SceneryApplication extends SceneryDefaultApplication {
 	Camera cam;
@@ -26,4 +25,10 @@ public class SceneryApplication extends SceneryDefaultApplication {
     }
 
 
+    public static void main(String... args)
+	{	
+    	SceneryApplication viewer = new SceneryApplication( "Brevis", 800, 600 );		
+        viewer.main();
+	}
+    
 }

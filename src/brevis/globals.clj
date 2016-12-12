@@ -1,6 +1,10 @@
 (ns brevis.globals
   (:import [brevis.graphics BrCamera]))
 
+(def scene (atom nil))
+(def renderer (atom nil))
+(def hub (atom nil))
+
 (def enable-display-text (atom true))
 
 (def default-gui-state {:fullscreen false

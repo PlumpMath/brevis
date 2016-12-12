@@ -33,9 +33,10 @@
                  [kephale/slick-util "1.0.1"]; This can probably be factored out now
                  ;[org.l33tlabs.twl/pngdecoder "1.0"]          
                  
+                 ;[org.lwjgl/lwjgl "3.1.1-SNAPSHOT"]
                  [graphics.scenery/scenery "1.0.0-SNAPSHOT"]
                  ;[net.clearvolume/scenery "1.0-SNAPSHOT" :classifier "tests"]
-                 ;[net.clearvolume/cleargl "1.0-SNAPSHOT"]
+                 [net.clearvolume/cleargl "2.0.0-SNAPSHOT"]
                  ;[scenery/openvr "0.1"]
                  
                  ;; Plotting 
@@ -68,9 +69,11 @@
                                     :aot :all
                                     :uberjar-name "brevis.example.swarm-STANDALONE.jar"}}
   :repositories [["imagej" "http://maven.imagej.net/content/groups/hosted/"]
+                 ["imagej.public" "http://maven.imagej.net/content/groups/public"]
                  ["imagej-releases" "http://maven.imagej.net/content/repositories/releases/"]
                  ["ome maven" "http://artifacts.openmicroscopy.org/artifactory/maven/"]
                  ["imagej-snapshots" "http://maven.imagej.net/content/repositories/snapshots/"]
+                 ["Sonatype Snapshots" "https://oss.sonatype.org/content/repositories/snapshots"]
                  ["snapshots" {:url "https://clojars.org/repo"
                                       :username :env/CI_DEPLOY_USERNAME
                                       :password :env/CI_DEPLOY_PASSWORD

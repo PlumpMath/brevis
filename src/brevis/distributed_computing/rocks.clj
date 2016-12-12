@@ -36,7 +36,7 @@
 (defn launch-config
   ;; Launches an experiment from the configuration file numruns times.
   [username server expName configFile numruns optArgs]
-  (let [command (str "qsub " configFile " -t 1-" (str numruns) " -N " expName)];  used to include optArgs, removed because it returned {}
+  (let [command (str "qsub " configFile " -t 1-" (str numruns) " -N " expName)]; " " optArgs)]
     (when @debug-mode (println "launch-config:" command))
     (remote-command username server command)))
 

@@ -7,20 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.List;
 
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBVertexBufferObject;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GLContext;
-import org.lwjgl.util.glu.Cylinder;
-import org.lwjgl.util.glu.Sphere;
-import org.lwjgl.util.vector.Vector3f;
 import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DMass;
 import org.ode4j.ode.DSpace;
@@ -28,6 +16,9 @@ import org.ode4j.ode.DTriMeshData;
 import org.ode4j.ode.OdeHelper;
 
 import brevis.graphics.BrMesh;
+import cleargl.GLVector;
+import scenery.Mesh;
+import scenery.Sphere;
 
 public class BrShape implements Serializable {
 	/**
@@ -45,16 +36,15 @@ public class BrShape implements Serializable {
 	static public String objDir = "obj" + File.separator;
 	
 	public BrShapeType type;
-	//public Vector3d dim;
-	public Vector3f dim;
+	public GLVector dim;
 	public int vertBID = -1;
 	public int colBID = -1;
 	public int idxBID = -1;
 	public int numIdx = 0;
-	public BrMesh mesh = null;
+	public Mesh mesh = null;
 	public Object data = null;
 	
-	public Vector3f center;
+	public GLVector center;
 	
 	// Make final?
 	public static BrMesh unitCone = null;	
@@ -62,12 +52,12 @@ public class BrShape implements Serializable {
 	
 	private int objectlist;
 	
-	public void resize( Vector3f newDim ) {
+	public void resize( GLVector newDim ) {
 		dim = newDim;
 		// should reload shoul
 	}
 	
-	public BrMesh getMesh() {
+	public Mesh getMesh() {
 		return mesh;
 	}
 	
@@ -79,58 +69,37 @@ public class BrShape implements Serializable {
 	
 	void computeCenter() {
 		if( type == BrShapeType.BOX ) {
-			center = new Vector3f( ( dim.x / 2f) , ( dim.y / 2f ), ( dim.z / 2f ) );
+			center = new GLVector( ( dim.x() / 2f) , ( dim.y() / 2f ), ( dim.z() / 2f ) );
 		} else if( type == BrShapeType.SPHERE ) {
 			//center = new Vector3f( dim.x, dim.x, dim.x );
-			center = new Vector3f( 0, 0, 0 );
+			center = new GLVector( 0, 0, 0 );
 		} else {
-			center = new Vector3f( 0, 0, 0 );
+			center = new GLVector( 0, 0, 0 );
 		}
 	}
 	
-	BrShape( BrShapeType t, Vector3f d, boolean withGraphics ) {
+	BrShape( BrShapeType t, GLVector d, boolean withGraphics ) {
 		//type = BrShapeType.SPHERE;
 		//dim = new Vector3d(1,1,1);
 		type = t;
 		dim = d;
 		
-		if( type == BrShapeType.UNIT_CONE ) {
-			if( unitCone == null ) {
-				initUnitCone( withGraphics );				
-			}
-			mesh = unitCone;
-			//dim = new Vector3d( mesh.getXWidth(), mesh.getYHeight(), mesh.getZDepth() );
-			dim = new Vector3f( 1, 1, 1 );
-			//System.out.println( dim );
-		} else if( type == BrShapeType.UNIT_SPHERE) {
-			if( unitSphere== null ) {
-				initUnitSphere( withGraphics );				
-			}
-			mesh = unitSphere;
-			//dim = new Vector3d( mesh.getXWidth(), mesh.getYHeight(), mesh.getZDepth() );
-			dim = new Vector3f( 1, 1, 1 );
-			//System.out.println( dim );
-		} else if( type == BrShapeType.SPHERE ) {
-			data = new Sphere();
-			if( withGraphics )
-				opengldrawtolist();
+		if( type == BrShapeType.SPHERE ) {
+			createMesh( withGraphics );
 		} else if( type == BrShapeType.CYLINDER ) {
-			data = new Cylinder();
-			if( withGraphics )
-				opengldrawtolist();
+			createMesh( withGraphics );
 		} else if( type == BrShapeType.CONE ) {
-			data = new Cylinder();
-			if( withGraphics )
-				opengldrawtolist();
+			createMesh( withGraphics );
+			/*if( withGraphics )
+				opengldrawtolist();*/
 		} else if( type == BrShapeType.BOX ) {
-			if( withGraphics )
-				opengldrawtolist();
+			createMesh( withGraphics );
 		} else {
 			createMesh( withGraphics );
 			if( mesh != null ) {
-				mesh.rescaleMesh( (float)dim.x, (float)dim.y, (float)dim.z, withGraphics );
+				//mesh.rescaleMesh( (float)dim.x(), (float)dim.y(), (float)dim.z(), withGraphics );
 			}
-			dim = new Vector3f( 1, 1, 1 );
+			dim = new GLVector( 1, 1, 1 );
 		}
 				
 		computeCenter();
@@ -141,68 +110,47 @@ public class BrShape implements Serializable {
 		//createMesh( withGraphics );
 		loadMesh( filename, isResource, withGraphics );
 		if( mesh != null ) {
-			mesh.rescaleMesh( (float)dim.x, (float)dim.y, (float)dim.z, withGraphics );
+			//mesh.rescaleMesh( (float)dim.x(), (float)dim.y(), (float)dim.z(), withGraphics );
 		}
 		computeCenter();
 		//loadMesh( filename, isResource, withGraphics );
 	}
 	
-	BrShape( String filename, boolean isResource, boolean withGraphics, Vector3f d ) {		
+	BrShape( String filename, boolean isResource, boolean withGraphics, GLVector d ) {		
 		type = BrShapeType.MESH;
 		dim = d;
 		//createMesh( withGraphics );
 		loadMesh( filename, isResource, withGraphics );
 		if( mesh != null ) {
-			mesh.rescaleMesh( (float)dim.x, (float)dim.y, (float)dim.z, withGraphics );
+			//mesh.rescaleMesh( (float)dim.x(), (float)dim.y(), (float)dim.z(), withGraphics );
 		}
 		computeCenter();
 		//loadMesh( filename, isResource, withGraphics );
 	}
 	
-	BrShape( List<Vector3f> verts ) {
+	/*
+	BrShape( List<GLVector> verts ) {
 		type = BrShapeType.MESH;
 		loadMesh( verts );
-		dim = new Vector3f( 1, 1, 1 );
+		dim = new GLVector( 1, 1, 1 );
 		computeCenter();
 	}
+	*/
 	
 	
-	
-	BrShape( BrMesh inMesh ) {
+	BrShape( Mesh inMesh ) {
 		type = BrShapeType.MESH;
 		mesh = inMesh;
-		dim = new Vector3f( 1, 1, 1 );
+		dim = new GLVector( 1, 1, 1 );
 		computeCenter();
 	}
-	
-	public void initUnitCone( boolean withGraphics ) {		
-		String filename = objDir + "cone.obj";
-	
-		try {		
-			BufferedReader br = new BufferedReader( new InputStreamReader( ClassLoader.getSystemResource( filename ).openStream() ) );
-			unitCone = new BrMesh( br, true, withGraphics );
-		} catch( Exception e ) {
-			e.printStackTrace();
-		}	
-	}
-	
-	public void initUnitSphere( boolean withGraphics ) {		
-		String filename = objDir + "sphere.obj";
-	
-		try {		
-			BufferedReader br = new BufferedReader( new InputStreamReader( ClassLoader.getSystemResource( filename ).openStream() ) );
-			unitSphere = new BrMesh( br, true, withGraphics );
-		} catch( Exception e ) {
-			e.printStackTrace();
-		}	
-	}
-	
+
 	public String getType() {
 		if( type == BrShapeType.BOX ) {
 			return "box";
-		} else if( type == BrShapeType.SPHERE  ||  type == BrShapeType.UNIT_SPHERE ) {
+		} else if( type == BrShapeType.SPHERE ) {
 			return "sphere";
-		} else if( type == BrShapeType.CONE || type == BrShapeType.UNIT_CONE ) {
+		} else if( type == BrShapeType.CONE ) {
 			return "cone";			
 		} else if( type == BrShapeType.CYLINDER ) {
 			return "cylinder";
@@ -223,15 +171,15 @@ public class BrShape implements Serializable {
 	public DMass createMass( double density ) {
 		DMass m = OdeHelper.createMass();
 		if( type == BrShapeType.BOX ) {
-			m.setBox(density, dim.x, dim.y, dim.z );
+			m.setBox(density, dim.x(), dim.y(), dim.z() );
 		} else if( type == BrShapeType.SPHERE || type == BrShapeType.UNIT_SPHERE || type == BrShapeType.ICOSAHEDRON || type == BrShapeType.PRISM ) {
-			m.setSphere( density, dim.x );
+			m.setSphere( density, dim.x() );
 		} else if( type == BrShapeType.CONE || type == BrShapeType.UNIT_CONE ) {
-			m.setSphere(density, dim.x);
+			m.setSphere(density, dim.x());
 		} else if( type == BrShapeType.CYLINDER ) {
-			m.setSphere(density, dim.x);
+			m.setSphere(density, dim.x());
 		} else if( type == BrShapeType.MESH ) {
-			m.setSphere(density, dim.x );
+			m.setSphere(density, dim.x() );
 		}
 		return m;
 	}
@@ -347,6 +295,8 @@ public class BrShape implements Serializable {
 		//filename = objDir + filename;		
 		
 		//System.out.println( "createMesh " + filename + " " + type );
+		
+
 		loadMesh( filename, true, withGraphics );
 	}
 	
@@ -378,7 +328,8 @@ public class BrShape implements Serializable {
 		loadMesh( filename, isResource, withGraphics );
 	}
 	
-	public void loadMesh( List<Vector3f> verts ) {
+	/*
+	public void loadMesh( List<GLVector> verts ) {
 		try {
 			mesh = new BrMesh( verts );			
 					
@@ -390,13 +341,14 @@ public class BrShape implements Serializable {
 			//dim = new Vector3d( mesh.getXWidth(), mesh.getYHeight(), mesh.getZDepth() );
 			
 			// this is being used for scale
-			dim = new Vector3f( 1, 1, 1 );
+			dim = new GLVector( 1, 1, 1 );
 			
 			//mesh.opengldrawtolist();
 		} catch( Exception e ) {
 			e.printStackTrace();
 		}
 	}	
+	*/
 	
 	public void loadMesh( String filename, boolean isResource, boolean withGraphics ) {
 		try {
@@ -404,28 +356,11 @@ public class BrShape implements Serializable {
 				filename = objDir + filename;
 			//System.out.println( "Loading object: " + filename );			
 			
-			if( isResource ) {			
-			//FileReader fr = new FileReader(filename);		
-				//BufferedReader br = new BufferedReader( new InputStreamReader( ClassLoader.getSystemResource( filename ).openStream() ) );
-				BufferedReader br = new BufferedReader( new InputStreamReader( Thread.currentThread().getContextClassLoader().getResourceAsStream(filename) ) );
-				
-				//mesh = new BrMesh( br, false );
-				mesh = new BrMesh( br, true, withGraphics );
-			} else {				
-				BufferedReader br = new BufferedReader( new FileReader( filename ) );
-				//mesh = new BrMesh( br, false );
-				mesh = new BrMesh( br, true, withGraphics );
-			}
+			//if( isResource ) {			
+			mesh = new Mesh();
+			mesh.readFromOBJ( filename, false );
 					
-			if( mesh.numpolygons() == 0 ) {
-				System.out.println("Found 0 faces when reading: " + filename );
-			}
-			
-			// this is actually size
-			//dim = new Vector3d( mesh.getXWidth(), mesh.getYHeight(), mesh.getZDepth() );
-			
-			// this is being used for scale
-			dim = new Vector3f( 1, 1, 1 );
+			dim = new GLVector( 1, 1, 1 );
 			
 			//mesh.opengldrawtolist();
 		} catch( Exception e ) {
@@ -439,7 +374,10 @@ public class BrShape implements Serializable {
 		if( mesh != null ) {
 			DTriMeshData new_tmdata = OdeHelper.createTriMeshData();
 			//System.out.println( "createGeom " + type );
-			new_tmdata.build( mesh.trimeshVertices( new float[]{ (float) dim.x, (float) dim.y, (float) dim.z } ), mesh.trimeshIndices() );
+								
+			//new_tmdata.build( mesh.trimeshVertices( new float[]{ (float) dim.x(), (float) dim.y(), (float) dim.z() } ), mesh.trimeshIndices() );
+			
+			System.out.println( "ODE mesh is not being built");
 			
 			g = OdeHelper.createTriMesh(space, new_tmdata, null, null, null);
 			
@@ -452,73 +390,63 @@ public class BrShape implements Serializable {
 		// Should be where primitive shapes are
 		switch( type ) {
 		case BOX:
-			return OdeHelper.createBox( space, dim.x, dim.y, dim.z );		
+			return OdeHelper.createBox( space, dim.x(), dim.y(), dim.z() );		
 		default:
 		case SPHERE:
-			return OdeHelper.createSphere( space, dim.x );			
+			return OdeHelper.createSphere( space, dim.x() );			
 		}		
 	}
 	
-	public void setDimension( Vector3f newd, boolean withGraphics ) {
-		dim = newd;
+	public void setDimension( GLVector newDim, boolean withGraphics ) {
+		dim = newDim;
 		if( mesh != null ) {
-			mesh.rescaleMesh( (float)newd.x, (float)newd.y, (float)newd.z, withGraphics );
-			//System.out.println( "rescaling " + newd );
+			//mesh.rescaleMesh( (float)newDim.x(), (float)newDim.y(), (float)newDim.z(), withGraphics );			
+			System.out.println( "not rescaling" );
 		}
 	}
 	
-	public Vector3f getDimension() {
+	public GLVector getDimension() {
 		return dim;
 	}
 	
+	/*
 	public static BrShape createMeshFromBrMesh( BrMesh inMesh ) {
-		//System.out.println( filename );
 		return ( new BrShape( inMesh ) );
 	}
+	*/
 	
-	public static BrShape createMeshFromFile( String filename, boolean isResource, boolean withGraphics, Vector3f dim ) {
-		//System.out.println( filename );
-		//return ( new BrShape( filename, isResource, withGraphics ) );
+	public static BrShape createMeshFromFile( String filename, boolean isResource, boolean withGraphics, GLVector dim ) {
 		return ( new BrShape( filename, isResource, withGraphics, dim ) );
 	}
 	
-	public static BrShape createMeshFromTriangles( List<Vector3f> verts ) {
-		//System.out.println( filename );
-		//return ( new BrShape( filename, isResource, withGraphics ) );
+	/*
+	public static BrShape createMeshFromTriangles( List<GLVector> verts ) {
 		return ( new BrShape( verts ) );
 	}
+	*/
 	
 	public static BrShape createSphere( double r, boolean withGraphics ) {
-		return ( new BrShape( BrShapeType.SPHERE, new Vector3f( (float)r, (float)r, (float)r ), withGraphics ) );
-		//return ( new BrShape( BrShapeType.UNIT_SPHERE, new Vector3d( r, r, r )));	
+		return ( new BrShape( BrShapeType.SPHERE, new GLVector( (float)r, (float)r, (float)r ), withGraphics ) );
 	}
 	
 	public static BrShape createIcosahedron( double r, boolean withGraphics ) {
-		return ( new BrShape( BrShapeType.ICOSAHEDRON, new Vector3f( (float)r, (float)r, (float)r ), withGraphics ) );
-		//return ( new BrShape( BrShapeType.UNIT_SPHERE, new Vector3d( r, r, r )));	
+		return ( new BrShape( BrShapeType.ICOSAHEDRON, new GLVector( (float)r, (float)r, (float)r ), withGraphics ) );
 	}
 	
 	public static BrShape createBox( double x, double y, double z, boolean withGraphics ) {
-		return ( new BrShape( BrShapeType.BOX, new Vector3f( (float)x, (float)y, (float)z ), withGraphics ) );
+		return ( new BrShape( BrShapeType.BOX, new GLVector( (float)x, (float)y, (float)z ), withGraphics ) );
 	}
 	
 	public static BrShape createCone( double length, double base, boolean withGraphics ) {
-		//return ( new BrShape( BrShapeType.CONE, new Vector3d( length, base, 25 )));	// last element of vector is # of sides or stacks (depending on renderer)
-		//return ( new BrShape( BrShapeType.UNIT_CONE, new Vector3f( (float)length, (float)base, (float)25 )));	// last element of vector is # of sides or stacks (depending on renderer)
-		return ( new BrShape( BrShapeType.CONE, new Vector3f( (float)length, (float)base, (float)25 ), withGraphics ));	// last element of vector is # of sides or stacks (depending on renderer)
+		return ( new BrShape( BrShapeType.CONE, new GLVector( (float)length, (float)base, (float)25 ), withGraphics ));	// last element of vector is # of sides or stacks (depending on renderer)
 	}
 	
 	public static BrShape createCylinder( double length, double radius, boolean withGraphics ) {
-		return ( new BrShape( BrShapeType.CYLINDER, new Vector3f( (float)length, (float)radius, (float)25 ), withGraphics ));	// last element of vector is # of sides or stacks (depending on renderer)
+		return ( new BrShape( BrShapeType.CYLINDER, new GLVector( (float)length, (float)radius, (float)25 ), withGraphics ));	// last element of vector is # of sides or stacks (depending on renderer)
 	}
 	
 	public static BrShape createCylinder( double length, double radius1, double radius2, boolean withGraphics ) {
-		return ( new BrShape( BrShapeType.CYLINDER, new Vector3f( (float)length, (float)radius1, (float)radius2 ), withGraphics ));	// last element of vector is # of sides or stacks (depending on renderer)
-	}
-
-	public void destroy() {
-		mesh.destroy();
-		
+		return ( new BrShape( BrShapeType.CYLINDER, new GLVector( (float)length, (float)radius1, (float)radius2 ), withGraphics ));	// last element of vector is # of sides or stacks (depending on renderer)
 	}
 	
 	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
@@ -532,96 +460,7 @@ public class BrShape implements Serializable {
 	// Drawing
 	
 	static public void drawBox(float w, float h, float d) {
-		GL11.glBegin(GL11.GL_QUADS);
-			// Front
-			GL11.glNormal3f(0f, 0f, 1f);
-			GL11.glTexCoord2f(0.0f, 0.0f); GL11.glVertex3f(-w, -h,  d);  // Bottom Left
-			GL11.glTexCoord2f(1.0f, 0.0f); GL11.glVertex3f( w, -h,  d);  // Bottom Right
-			GL11.glTexCoord2f(1.0f, 1.0f); GL11.glVertex3f( w,  h,  d);  // Top Right
-			GL11.glTexCoord2f(0.0f, 1.0f); GL11.glVertex3f(-w,  h,  d);  // Top Left
-		    // Back 
-			GL11.glNormal3f(0f, 0f, -1f);
-			GL11.glTexCoord2f(1.0f, 0.0f); GL11.glVertex3f(-w, -h, -d);  // Bottom Right
-			GL11.glTexCoord2f(1.0f, 1.0f); GL11.glVertex3f(-w,  h, -d);  // Top Right
-			GL11.glTexCoord2f(0.0f, 1.0f); GL11.glVertex3f( w,  h, -d);  // Top Left
-			GL11.glTexCoord2f(0.0f, 0.0f); GL11.glVertex3f( w, -h, -d);  // Bottom Left 
-		    // Top 
-			GL11.glNormal3f(0f, -1f, 0f);
-			GL11.glTexCoord2f(0.0f, 1.0f); GL11.glVertex3f(-w,  h, -d);  // Top Left
-			GL11.glTexCoord2f(0.0f, 0.0f); GL11.glVertex3f(-w,  h,  d);  // Bottom Left 
-			GL11.glTexCoord2f(1.0f, 0.0f); GL11.glVertex3f( w,  h,  d);  // Bottom Right 
-			GL11.glTexCoord2f(1.0f, 1.0f); GL11.glVertex3f( w,  h, -d);  // Top Right 
-		    // Bottom 
-			GL11.glNormal3f(0f, 1f, 0f);
-			GL11.glTexCoord2f(1.0f, 1.0f); GL11.glVertex3f(-w, -h, -d);  // Top Right
-			GL11.glTexCoord2f(0.0f, 1.0f); GL11.glVertex3f( w, -h, -d);  // Top Left 
-			GL11.glTexCoord2f(0.0f, 0.0f); GL11.glVertex3f( w, -h,  d);  // Bottom Left 
-			GL11.glTexCoord2f(1.0f, 0.0f); GL11.glVertex3f(-w, -h,  d);  // Bottom Right
-		    // Right 
-			GL11.glNormal3f(-1f, 0f, 0f);
-			GL11.glTexCoord2f(1.0f, 0.0f); GL11.glVertex3f( w, -h, -d);  // Bottom Right
-			GL11.glTexCoord2f(1.0f, 1.0f); GL11.glVertex3f( w,  h, -d);  // Top Right 
-			GL11.glTexCoord2f(0.0f, 1.0f); GL11.glVertex3f( w,  h,  d);  // Top Left 
-			GL11.glTexCoord2f(0.0f, 0.0f); GL11.glVertex3f( w, -h,  d);  // Bottom Left 
-		    // Left 
-			GL11.glNormal3f(1f, 0f, 0f);
-			GL11.glTexCoord2f(0.0f, 0.0f); GL11.glVertex3f(-w, -h, -d);  // Bottom Left
-			GL11.glTexCoord2f(1.0f, 0.0f); GL11.glVertex3f(-w, -h,  d);  // Bottom Right 
-			GL11.glTexCoord2f(1.0f, 1.0f); GL11.glVertex3f(-w,  h,  d);  // Top Right
-		    GL11.glTexCoord2f(0.0f, 1.0f); GL11.glVertex3f(-w,  h, -d);  // Top Left 
-		
-		    GL11.glEnd();
-	
-		
-
-		//System.out.println( "I wish I was printing a box of " + w + "," + h + "," + d + " dimensions ");
-	}
-	
-	static public void drawSphere(float r, int stack, int string) {
-
-		Sphere s = new Sphere();
-	
-		s.draw(r, stack, string);
-		
-
-	}
-
-	static public void drawCylinder(float baseRadius, float topRadius, float height, int slices, int stacks) {
-
-		Cylinder c = new Cylinder();
-	
-		c.draw(baseRadius, topRadius, height, slices, stacks);
-		
-		//System.out.println(baseRadius + " " + topRadius + " " + height + " " + slices + " " + stacks);
-
-	}	
-	
-	public void opengldrawtolist() {
-		if( System.getProperty("brevisHeadless") == null || System.getProperty("brevisHeadless") == "false" ) {
-			int numSlices = 25;
-			int numStacks = 25;
-			
-			this.objectlist = GL11.glGenLists(1);
-			
-			//GL11.glDisable(GL11.GL_TEXTURE_2D);
-			
-			GL11.glNewList(objectlist,GL11.GL_COMPILE);
-			
-			if( getType() == "box" )
-	        	drawBox( 0.5f, 0.5f, 0.5f );
-	        else if( getType() == "cone" )
-	        	drawCylinder( (float)dim.y, (float)0.0001, (float)dim.x, numSlices, numStacks );
-	        else if( getType() == "cylinder" )
-	        	drawCylinder( (float)dim.y, (float)dim.z, (float)dim.x, numSlices, numStacks );
-	        else
-	        	drawSphere( (float)dim.x, 25, 20);
-			
-			GL11.glEndList();
-		}
-	}
-	
-	public void opengldraw() {
-		GL11.glCallList(objectlist);
+		System.out.println( "I wish I was printing a box of " + w + "," + h + "," + d + " dimensions ");
 	}
 	
 }

@@ -1,85 +1,64 @@
 (ns brevis.vector
   (:use [brevis.math])
-  (:import [org.lwjgl.util.vector Vector3f Vector4f]))
-
-; Perhaps these could be multimethods
+  (:import [cleargl GLVector]))
 
 (defn vec3
-  "Make a Vector3f"
-  [^double x ^double y ^double z]
-  (Vector3f. x y z))
+  "Make a GLVector"
+  [x y z]
+  ^GLVector (GLVector. (float-array [(float x) (float y) (float z)])))
 
 (defn vec3?
   "Test if this is a vec3."
   [v]
-  (= (class v) org.lwjgl.util.vector.Vector3f))
+  (and (= (class v) cleargl.GLVector)
+       (= (- (.hashCode v) 31) 3)))
 
 (defn vec4
-  "Make a Vector4f"
-  [^double x ^double y ^double z ^double w]
-  (Vector4f. x y z w))
+  "Make a GLVector"
+  [x y z w]
+  ^GLVector (GLVector. (float-array [(float x) (float y) (float z) (float w)])))
 
-(defn vec4?
-  "Test if this is a vec4."
+(defn vec4? 
+  "Test if this a 4D vector."
   [v]
-  (= (class v) org.lwjgl.util.vector.Vector4f))
+  (and (= (class v) cleargl.GLVector)
+       (= (- (.hashCode v) 31) 4)))
 
 (defn vec4-to-vec3
   "convert a vec4 to a vec3"
-  [^Vector4f v]
-  (vec3 (.x v) (.y v) (.z v)))
+  [^GLVector v]
+  (GLVector. (float-array [(.x v) (.y v) (.z v)])))
 
 (defn vec3-to-vec4
   "Convert a vec3 to a vec4 by padding the 4th dim with 1."
-  [^Vector3f v]
-  (vec4 (.x v) (.y v) (.z v) 1))
+  [^GLVector v]
+  (GLVector. (float-array [(.x v) (.y v) (.z v) 1])))
 
 (defn sub
-   "Wrap's Vector3f sub."
+   "Wrap's GLVector sub."
    [v1 v2]
-   (if (vec3? v1) 
-     (Vector3f/sub ^Vector3f v1 ^Vector3f v2 nil)
-     (Vector4f/sub ^Vector4f v1 ^Vector4f v2 nil)))
+   (.minus ^GLVector v1 ^GLVector v2))
 
-(defn sub-vec3
-   "Wrap's Vector3f sub. Should be a little faster than normal sub"
-   [^Vector3f v1 ^Vector3f v2] (Vector3f/sub v1 v2 nil))
-
-(defn sub-vec4
-   "Wrap's Vector3f sub."
-   [^Vector4f v1 ^Vector4f v2] (Vector4f/sub v1 v2 nil))
+(def sub-vec3 sub) 
+(def sub-vec4 sub)
 
 (defn div
   "Divide a vector by a scalar."
   [v s]
-  (let [vr (if (vec3? v) ^Vector3f (Vector3f. v) ^Vector4f (Vector4f. v))]             
-    (.scale vr (double (/ s)))
+  (let [vr (GLVector. v)]    
+    (dotimes [k (if (vec3? vr) 3 4)]
+      (.set vr k (/ (.get v k) s)))
     vr))
 
-(defn div-vec3
-  "Divide a Vector3f by a scalar."
-  [v s]
-  (let [^Vector3f vr (Vector3f. v)]
-    (.scale vr ^double (double (/ s)))
-    vr))
-
-(defn div-vec4
-  "Divide a Vector4f by a scalar."
-  [v s]
-  (let [^Vector4f vr (Vector4f. v)]
-    (.scale vr ^double (double (/ s)))
-    vr))
+(def div-vec3 div) 
+(def div-vec4 div)
     
 (defn add
-  "Add Vector3f's"
-  #_([]
-     nil)
+  "Add GLVector's"
   ([v]
     v)
   ([v1 v2]
-    (if (vec3? v1) 
-      (Vector3f/add ^Vector3f v1 ^Vector3f v2 nil)
-      (Vector4f/add ^Vector4f v1 ^Vector4f v2 nil)))
+    (.plus v1 v2))
   ([v1 v2 & vs]
     (loop [vs vs
            v (add v1 v2)]
@@ -88,205 +67,115 @@
         (recur (rest vs)
                (add v (first vs)))))))
 
-(defn add-vec3
-  "Add Vector3f's"
-  ([]
-    (vec3 0 0 0))
-  ([v]
-    v)
-  ([v1 v2]
-    (Vector3f/add ^Vector3f v1 ^Vector3f v2 nil))
-  ([v1 v2 & vs]
-    (loop [vs vs
-           v (add-vec3 v1 v2)]
-      (if (empty? vs)
-        v
-        (recur (rest vs)
-               (add-vec3 v (first vs)))))))
-
-(defn add-vec4
-  "Add Vector4f's"
-   ([]
-    (vec4 0 0 0 0))
-  ([v]
-    v)
-  ([v1 v2]
-    (Vector4f/add ^Vector4f v1 ^Vector4f v2 nil))
-  ([v1 v2 & vs]
-    (loop [vs vs
-           v (add-vec4 v1 v2)]
-      (if (empty? vs)
-        v
-        (recur (rest vs)
-               (add-vec4 v (first vs)))))))
+(def add-vec3 add)
+(def add-vec4 add)
 
 (defn mul
-  "Multiply a Vector3f by a scalar."
+  "Multiply a GLVector by a scalar."
   [v s]
-  (let [vr (if (vec3? v) ^Vector3f (Vector3f. v) ^Vector4f (Vector4f. v))]
-    (.scale vr (double s))
+  (let [vr (GLVector. v)]    
+    (dotimes [k (if (vec3? vr) 3 4)]
+      (.set vr k (* (.get v k) s)))
     vr))
 
-(defn mul-vec3
-  "Multiply a Vector3f by a scalar."
-  [v s]
-  (let [^Vector3f vr (Vector3f. v)]
-    (.scale vr ^double (double s))
-    vr))
-
-(defn mul-vec4
-  "Multiply a Vector4f by a scalar."
-  [v s]
-  (let [^Vector4f vr (Vector4f. v)]
-    (.scale vr ^double (double s))
-    vr))
-
-(defn elmul
-  "Multiply a Vector3f by a scalar."
-  [v w]
-  (let [vr (if (vec3? v) ^Vector3f (Vector3f. v) ^Vector4f (Vector4f. v))]             
-    (.setX vr (double (* (.x w) (.x v))))
-    (.setY vr (double (* (.y w) (.y v))))
-    (.setZ vr (double (* (.z w) (.z v))))
-    vr))
+(def mul-vec3 mul)
+(def mul-vec4 mul)
 
 (defn elmul-vec3
-  "Multiply a Vector3f by a scalar."
-  [^Vector3f v ^Vector3f w]
-  (let [^Vector3f vr (Vector3f. v)]
-    (.setX vr ^double (double (* (.x w) (.x v))))
-    (.setY vr ^double (double (* (.y w) (.y v))))
-    (.setZ vr ^double (double (* (.z w) (.z v))))
+  "Multiply a GLVector by a scalar."
+  [^GLVector v ^GLVector w]
+  (let [vr ^GLVector (GLVector. v)]
+    (.set vr 0 (float (* (.x w) (.x v))))
+    (.set vr 1 (float (* (.y w) (.y v))))
+    (.set vr 2 (float (* (.z w) (.z v))))
     vr))
 
 (defn elmul-vec4
-  "Multiply a Vector3f by a scalar."
-  [^Vector4f v ^Vector4f w]
-  (let [^Vector4f vr (Vector4f. v)]
-    (.setX vr ^double (double (* (.x w) (.x v))))
-    (.setY vr ^double (double (* (.y w) (.y v))))
-    (.setZ vr ^double (double (* (.z w) (.z v))))
+  "Multiply a GLVector by a scalar."
+  [^GLVector v ^GLVector w]
+  (let [vr ^GLVector (GLVector. v)]
+    (.set vr 0 (float (* (.x w) (.x v))))
+    (.set vr 1 (float (* (.y w) (.y v))))
+    (.set vr 2 (float (* (.z w) (.z v))))
+    (.set vr 3 (float (* (.w w) (.w v))))
     vr))
+
+(defn elmul
+  "Multiply a GLVector by a scalar."
+  [v w]  
+  (if (vec3? v)
+    (elmul-vec3 v w)
+    (elmul-vec4 v w)))
 
 (defn dot
   "Dot product of 2 vectors."
   [v1 v2]
-  (if (vec3? v1) 
-    (Vector3f/dot ^Vector3f v1 ^Vector3f v2) 
-    (Vector4f/dot ^Vector4f v1 ^Vector4f v2))) 
+  (.times v1 v2)) 
 
-(defn dot-vec3
-  "Dot product of 2 vectors."
-  [v1 v2]
-  (Vector3f/dot ^Vector3f v1 ^Vector3f v2))
-
-(defn dot-vec4
-  "Dot product of 2 vectors."
-  [v1 v2]
-  (Vector4f/dot ^Vector4f v1 ^Vector4f v2))
+(def dot-vec3 dot)
+(def dot-vec4 dot)
 
 (defn length
   "Return the length of a vector."
-  [v] (.length v))
+  [v] 
+  (.magnitude v))
 
-(defn length-vec3
-  "Return the length of a vector."
-  [^Vector3f v] (.length v))
-
-(defn length-vec3
-  "Return the length of a vector."
-  [^Vector4f v] (.length v))  
+(def length-vec3 length)
+(def length-vec4 length)  
 
 (defn cross
   "Cross product of vectors."
-  [^Vector3f v1 ^Vector3f v2]  
-  (Vector3f/cross v1 v2 nil))
+  [^GLVector v1 ^GLVector v2]  
+  (.cross v1 v2))
 
 (defn normalize
   "Normalize a vector."
   [v]
-  (let [nv (if (vec3? v) ^Vector3f (Vector3f. v) ^Vector4f (Vector4f. v))]          
-    (when-not (zero? (length v))
-      (.normalise nv))
-    nv))
+  (.getNormalized v))
 
-(defn normalize-vec3
-  "Normalize a vector."
-  [^Vector3f v]
-  (let [nv (Vector3f. v)]          
-    (when-not (zero? (length v))
-      (.normalise nv))
-    nv))
-
-(defn normalize-vec4
-  "Normalize a vector."
-  [^Vector4f v]
-  (let [nv (Vector4f. v)]          
-    (when-not (zero? (length v))
-      (.normalise nv))
-    nv))
+(def normalize-vec3 normalize)
+(def normalize-vec4 normalize)
 
 (defn map-vec3
   "Map over a vec3"
-  [f ^Vector3f v]
+  [f ^GLVector v]
   (vec3 (f (.x v)) (f (.y v)) (f (.z v))))
 
 (defn map-vec4
   "Map over a vec4"
-  [f ^Vector4f v]
+  [f ^GLVector v]
   (vec4 (f (.x v)) (f (.y v)) (f (.z v)) (f (.w v))))
 
 (defn vec3-to-seq
   "Quick hacks for seq-ing vectors."
-  [^Vector3f v]
+  [^GLVector v]
   [(.x v) (.y v) (.z v)])
 
 (defn vec4-to-seq
   "Quick hacks for seq-ing vectors."
-  [^Vector4f v]
+  [^GLVector v]
   [(.x v) (.y v) (.z v) (.w v)])
 
 (defn x-val
   "Return the x-value of a vector."
   [v]
-  (if (vec3? v) (.x ^Vector3f v) (.x ^Vector4f v)))
+  (.x ^GLVector v))
 
-(defn x-val-vec3
-  "Return the x-value of a vector."
-  [v]
-  (.x ^Vector3f v))
-
-(defn x-val-vec4
-  "Return the x-value of a vector."
-  [v]
-  (.x ^Vector4f v))
+(def x-val-vec3 x-val)
+(def x-val-vec4 x-val)
 
 (defn y-val
   "Return the y-value of a vector."
   [v]
-  (if (vec3? v) (.y ^Vector3f v) (.y ^Vector4f v)))
+  (.y ^GLVector v))
 
-(defn y-val-vec3
-  "Return the y-value of a vector."
-  [v]
-  (.y ^Vector3f v))
-
-(defn y-val-vec4
-  "Return the y-value of a vector."
-  [v]
-  (.y ^Vector4f v))
+(def y-val-vec3 y-val)
+(def y-val-vec4 y-val)
 
 (defn z-val
   "Return the z-value of a vector."
   [v]
-  (if (vec3? v) (.z ^Vector3f v) (.z ^Vector4f v)))
+  (.z ^GLVector v))
 
-(defn z-val-vec3
-  "Return the z-value of a vector."
-  [v]
-  (.z ^Vector3f v))
-
-(defn z-val-vec4
-  "Return the z-value of a vector."
-  [v]
-  (.z ^Vector4f v))
+(def z-val-vec3 z-val)
+(def z-val-vec4 z-val)

@@ -1,13 +1,78 @@
-(ns brevis.graphics.basic-3D
+(ns brevis.graphics.scenery
   (:import [java.lang.Math]
            [java.nio ByteBuffer ByteOrder]
            [org.lwjgl.opengl GL11]
            [brevis BrObject]
            [brevis.graphics Basic3D BrSky])
-  (:use [brevis globals]
+  (:use ;[brevis globals]
         [brevis.physics utils]
         [brevis.shape core box sphere cone])
-  (:require [clojure.java.io])) 
+  (:require [clojure.java.io]
+            [brevis.parameters :as parameters]
+            [brevis.globals :as globals])) 
+
+(defn get-scene
+  "Return the Scenery scene."
+  []
+  @globals/scene)
+
+(defn set-scene
+  "Change the scene."
+  [new-scene]
+  (reset! globals/scene new-scene))
+
+(defn get-renderer
+  "Return the Scenery renderer."
+  []
+  @globals/renderer)
+
+(defn set-renderer
+  "Change the current renderer."
+  [new-renderer]
+  (reset! globals/renderer new-renderer))
+
+(defn get-hub
+  "Return the Scenery hub."
+  []
+  @globals/hub)
+
+(defn set-hub
+  "Change the Scenery hub."
+  [new-hub]
+  (reset! globals/hub new-hub))
+
+(defn initialize-scenery
+  "Initialize the scenery variable."
+  []
+  (parameters/set-param :frame-count 0)
+  (set-scene (scenery.Scene.))
+  (set-hub (scenery.Hub.))
+  ;val preference = System.getProperty("scenery.Renderer", "OpenGLRenderer")
+  (set-renderer 
+    ;(scenery.backends.opengl.OpenGLRenderer. "Brevis" (get-scene) 512 512)
+    (scenery.backends.opengl.DeferredLightingRenderer. "Brevis" (get-scene) 512 512)
+    #_(scenery.backends.Renderer/createRenderer "Brevis" (get-scene) 512 512))
+  (.add (get-hub)
+    scenery.SceneryElement/RENDERER
+    (get-renderer)))
+
+(defn make-point-light
+  "Make a Scenery point light."
+  []
+  (scenery.PointLight.))
+
+(defn add-child
+  "Add a child to the scene."
+  [child]
+  (.addChild (get-scene) child))
+
+(defn make-detached-head-camera
+ "Make a detached head camera."
+ []
+ (scenery.DetachedHeadCamera.)) 
+
+;; Old brevis stuff
+
 
 (defn init-sky
  []
@@ -78,14 +143,14 @@
 (defn disable-skybox
   "Disable rendering of the skybox."
   []
-  (swap! *gui-state* assoc :disable-skybox true))
+  (parameters/set-param :disable-skybox true))
 
 (defn enable-skybox
   "Enable rendering of the skybox."
   []
-  (swap! *gui-state* dissoc :disable-skybox))
+  (parameters/set-param :disable-skybox false))
 
-(defn change-skybox
-  "Files must contain: front, left, back, right, up, down"
-  [files]
-  (.changeSkybox brevis.graphics.basic-3D/*sky* files))
+#_(defn change-skybox
+   "Files must contain: front, left, back, right, up, down"
+   [files]
+   (.changeSkybox brevis.graphics.basic-3D/*sky* files))

@@ -30,13 +30,6 @@ import java.util.Vector;
 
 import java.awt.image.ComponentColorModel;
 
-
-
-
-
-
-
-
 import org.newdawn.slick.opengl.ImageIOImageData;
 import org.newdawn.slick.opengl.InternalTextureLoader;
 import org.newdawn.slick.opengl.Texture;
@@ -49,15 +42,12 @@ import org.ode4j.ode.DBody;
 import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DMass;
 import org.ode4j.ode.OdeHelper;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.*;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
 
 //import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 
 import clojure.lang.*;
 import brevis.Utils;
+import cleargl.GLVector;
 import brevis.BrShape.BrShapeType;
 import ij.*;
 
@@ -74,14 +64,14 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 	public Long uid;
 	//public String type;
 	public clojure.lang.Keyword type;
-	public Vector3f acceleration;
-	public Vector3f velocity;
-	public Vector3f position;
+	public GLVector acceleration;
+	public GLVector velocity;
+	public GLVector position;
 	public double density = 1;
 	public BrShape shape;
 	public DMass mass;
-	public Vector4f rotation;
-	public Vector4f color;
+	public GLVector rotation;
+	public GLVector color;
 	//public BufferedImage texture;	
 	public Texture texture = null;	
 	public Object data;
@@ -133,12 +123,12 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 		uid = (long)-1;
 		//type = "Unassigned";
 		type = clojure.lang.Keyword.intern( clojure.lang.Symbol.create( "Unassigned" ) );
-		acceleration = new Vector3f( 0, 0, 0 );
-		velocity = new Vector3f( 0, 0, 0 );
-		position = new Vector3f( 0, 0, 0 );
+		acceleration = new GLVector( 0, 0, 0 );
+		velocity = new GLVector( 0, 0, 0 );
+		position = new GLVector( 0, 0, 0 );
 		shape = null;//BrShape.createSphere( 1 ); too expensive
-		color = new Vector4f( 1, 1, 1, 1 );
-		rotation = new Vector4f( 1, 0, 0, 0 );
+		color = new GLVector( 1, 1, 1, 1 );
+		rotation = new GLVector( 1, 0, 0, 0 );
 		data = null;
 		myMap = new HashMap<Object,Object>();
 		texture = null;
@@ -169,13 +159,8 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 	}
 	
 	public double distanceTo( BrObject other ) {
-		/*Vector3f delta = (Vector3f) position.clone();
-		delta.sub( other.position );
-		System.out.println( "distanceTo " + position + " " + other.position + " " + delta );*/
-		Vector3f delta = getPosition();
-		//delta.sub( other.getPosition() );
-		Vector3f.sub( other.getPosition(), getPosition(), delta );
-		return delta.length();
+		GLVector delta = other.getPosition().minus( getPosition() );
+		return delta.magnitude();
 	}
 	
 	public void setUID( Long UID ) {
@@ -215,42 +200,42 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 		nbrs.add( UID );
 	}
 	
-	public Vector3f getPosition() {
+	public GLVector getPosition() {
 		//return position;
-		return brevis.Utils.DVector3CToVector3f( body.getPosition() );
+		return brevis.Utils.DVector3CToGLVector( body.getPosition() );
 	}
 	
-	public Vector3f getVelocity() {
-		return brevis.Utils.DVector3CToVector3f( body.getLinearVel() );
+	public GLVector getVelocity() {
+		return brevis.Utils.DVector3CToGLVector( body.getLinearVel() );
 		//return velocity;
 	}
 	
-	public Vector3f getForce() {
-		return brevis.Utils.DVector3CToVector3f( body.getForce() );
+	public GLVector getForce() {
+		return brevis.Utils.DVector3CToGLVector( body.getForce() );
 		//return velocity;
 	}
 	
-	public Vector3f getAcceleration() {
+	public GLVector getAcceleration() {
 		return acceleration;
 	}
 	
-	public void setAcceleration( Vector3f v ) {
+	public void setAcceleration( GLVector v ) {
 		acceleration = v;
 	}
 	
-	public void setVelocity( Vector3f v ) {
+	public void setVelocity( GLVector v ) {
 		//velocity = v;
-		body.setLinearVel( brevis.Utils.Vector3fToDVector3( v ) );
+		body.setLinearVel( brevis.Utils.GLVectorToDVector3( v ) );
 	}
 	
-	public void setPosition( Vector3f v ) {
+	public void setPosition( GLVector v ) {
 		//position = v;
 		if( myKDnode != null ) {
-			myKDnode.domain[0] = position.x;
-			myKDnode.domain[1] = position.y;
-			myKDnode.domain[2] = position.z;
+			myKDnode.domain[0] = position.x();
+			myKDnode.domain[1] = position.y();
+			myKDnode.domain[2] = position.z();
 		}
-		body.setPosition( brevis.Utils.Vector3fToDVector3( v ) );
+		body.setPosition( brevis.Utils.GLVectorToDVector3( v ) );
 	}
 	
 	public DBody getBody( ) {
@@ -291,7 +276,7 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 		
 		geom = shape.createGeom( e.physics.getSpace() );
 		geom.setBody( body );
-		geom.setOffsetWorldPosition( position.x, position.y, position.z );
+		geom.setOffsetWorldPosition( position.x(), position.y(), position.z() );
 		
 		/*if( shape.type != BrShapeType.MESH ) {
 			shape.createMesh();
@@ -303,35 +288,35 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 		// need to remove old geom from body??
 		geom = shape.createGeom( e.physics.getSpace() );
 		geom.setBody( body );
-		geom.setOffsetWorldPosition( position.x, position.y, position.z );
+		geom.setOffsetWorldPosition( position.x(), position.y(), position.z() );
 	}
 	
 	/*public void makeAbstract( Engine e ) {
 		
 	}*/
 	
-	public void setColor( Vector4f c ) {
+	public void setColor( GLVector c ) {
 		color = c;
 	}
 	
-	public Vector4f getColor() {
+	public GLVector getColor() {
 		return color;
 	}
 	
-	public void setDimension( Vector3f newDim, boolean withGraphics ) {
+	public void setDimension( GLVector newDim, boolean withGraphics ) {
 		shape.setDimension( newDim, withGraphics );
 	}
 	
-	public Vector3f getDimension() {
+	public GLVector getDimension() {
 		return shape.getDimension();
 	}
 	
-	public Vector4f getRotation() {
+	public GLVector getRotation() {
 		
 		return rotation;
 	}
 	
-	public void setRotation( Vector4f v ) {
+	public void setRotation( GLVector v ) {
 		rotation = v;
 	}
 	
@@ -362,6 +347,7 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
         return ret;
     } 
 	
+    /*
 	public void setTextureImage(BufferedImage newTexture) {
 		//Generally a good idea to enable texturing first
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -391,9 +377,6 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
         width = newTexture.getWidth();
         height = newTexture.getHeight();
         hasAlpha = newTexture.getColorModel().hasAlpha();
-
-        /*texWidth = (int) Math.pow( 2, Math.ceil( Math.log( texture.getTextureWidth() ) / Math.log( 2 ) ) );
-        texHeight = (int) Math.pow( 2, Math.ceil( Math.log( texture.getTextureHeight() ) / Math.log( 2 ) ) );*/
                
         texWidth = (int) Math.pow( 2, Math.ceil( Math.log( width ) / Math.log( 2 ) ) );
         texHeight = (int) Math.pow( 2, Math.ceil( Math.log( height ) / Math.log( 2 ) ) );
@@ -420,18 +403,6 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
         
         GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
         
-        /*IntBuffer temp = BufferUtils.createIntBuffer(16);
-        GL11.glGetInteger(SGL.GL_MAX_TEXTURE_SIZE, temp);
-        int max = temp.get(0);
-        if ((texWidth > max) || (texHeight > max)) {
-                try {
-					throw new IOException("Attempt to allocate a texture to big for the current hardware");
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-        }*/
-        
         IntBuffer temp = BufferUtils.createIntBuffer(16);
         GL11.glGetInteger(GL11.GL_MAX_TEXTURE_SIZE, temp);
         int max = temp.get(0);
@@ -444,11 +415,7 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 				}
         }
         
-        //}
-        /*
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, minFilter); 
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, magFilter); */
-        
+        //}        
         
         // produce a texture from the byte buffer
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 
@@ -473,7 +440,7 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
         
         texture = timp;
 				        
-	}
+	}*/
 	
 	// slick2d stuff
 	
@@ -510,107 +477,9 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		
 		g.drawImage(image.getSubimage(x, y, width, height),x+dx,y+dy,null);
-	}
-    
-	/*public ByteBuffer impToByteBuffer( ImagePlus imp ) {		
-		
-		BufferedImage image = imp.getBufferedImage();		
-		boolean flipped = false;
-		boolean forceAlpha = false;
-		
-		int[] transparent = null;
-		
-		 ByteBuffer imageBuffer = null; 
-	        WritableRaster raster;
-	        BufferedImage texImage;
-	        
-	        int texWidth = 2;
-	        int texHeight = 2;
-	        
-	        // find the closest power of 2 for the width and height
-	        // of the produced texture
-
-	        while (texWidth < image.getWidth()) {
-	            texWidth *= 2;
-	        }
-	        while (texHeight < image.getHeight()) {
-	            texHeight *= 2;
-	        }
-	        
-	        int width = image.getWidth();
-	        int height = image.getHeight();
-	        int depth = 24;
-	        
-	        // create a raster that can be used by OpenGL as a source
-	        // for a texture
-	        boolean useAlpha = image.getColorModel().hasAlpha() || forceAlpha; 
-	        
-	        if (useAlpha) {
-	        	depth = 32;
-	            raster = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE,texWidth,texHeight,4,null);
-	            texImage = new BufferedImage(glAlphaColorModel,raster,false,new Hashtable());
-	        } else {
-	        	depth = 24;
-	            raster = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE,texWidth,texHeight,3,null);
-	            texImage = new BufferedImage(glColorModel,raster,false,new Hashtable());
-	        }
-	            
-	        // copy the source image into the produced image
-	        Graphics2D g = (Graphics2D) texImage.getGraphics();
-	        
-	        // only need to blank the image for mac compatibility if we're using alpha
-	        if (useAlpha) {
-		        g.setColor(new Color(0f,0f,0f,0f));
-		        g.fillRect(0,0,texWidth,texHeight);
-	        }
-	        
-	        if (flipped) {
-	        	g.scale(1,-1);
-	        	g.drawImage(image,0,-height,null);
-	        } else {
-	        	g.drawImage(image,0,0,null);
-	        }
-	        
-	        boolean edging = true;
-	        if (edging) {
-		        if (height < texHeight - 1) {
-		        	copyArea(texImage, 0, 0, width, 1, 0, texHeight-1);
-		        	copyArea(texImage, 0, height-1, width, 1, 0, 1);
-		        }
-		        if (width < texWidth - 1) {
-		        	copyArea(texImage, 0,0,1,height,texWidth-1,0);
-		        	copyArea(texImage, width-1,0,1,height,1,0);
-		        }
-	        }
-	        
-	        // build a byte buffer from the temporary image 
-	        // that be used by OpenGL to produce a texture.
-	        byte[] data = ((DataBufferByte) texImage.getRaster().getDataBuffer()).getData(); 
-	        
-	        if (transparent != null) {
-		        for (int i=0;i<data.length;i+=4) {
-		        	boolean match = true;
-		        	for (int c=0;c<3;c++) {
-		        		int value = data[i+c] < 0 ? 256 + data[i+c] : data[i+c];
-		        		if (value != transparent[c]) {
-		        			match = false;
-		        		}
-		        	}
-		  
-		        	if (match) {
-		         		data[i+3] = 0;
-		           	}
-		        }
-	        }
-	        
-	        imageBuffer = ByteBuffer.allocateDirect(data.length); 
-	        imageBuffer.order(ByteOrder.nativeOrder()); 
-	        imageBuffer.put(data, 0, data.length); 
-	        imageBuffer.flip();
-	        g.dispose();	
-	        return imageBuffer; 
-	}*/
+	}    
 	
+	/*
 	public void setTextureImp(ImagePlus imp) {
 		//Generally a good idea to enable texturing first
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -643,9 +512,6 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
         width = newTexture.getWidth();
         height = newTexture.getHeight();
         hasAlpha = newTexture.getColorModel().hasAlpha();
-
-        /*texWidth = (int) Math.pow( 2, Math.ceil( Math.log( texture.getTextureWidth() ) / Math.log( 2 ) ) );
-        texHeight = (int) Math.pow( 2, Math.ceil( Math.log( texture.getTextureHeight() ) / Math.log( 2 ) ) );*/
                
         texWidth = (int) Math.pow( 2, Math.ceil( Math.log( width ) / Math.log( 2 ) ) );
         texHeight = (int) Math.pow( 2, Math.ceil( Math.log( height ) / Math.log( 2 ) ) );
@@ -672,18 +538,6 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
         
         GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
         
-        /*IntBuffer temp = BufferUtils.createIntBuffer(16);
-        GL11.glGetInteger(SGL.GL_MAX_TEXTURE_SIZE, temp);
-        int max = temp.get(0);
-        if ((texWidth > max) || (texHeight > max)) {
-                try {
-					throw new IOException("Attempt to allocate a texture to big for the current hardware");
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-        }*/
-        
         IntBuffer temp = BufferUtils.createIntBuffer(16);
         GL11.glGetInteger(GL11.GL_MAX_TEXTURE_SIZE, temp);
         int max = temp.get(0);
@@ -697,10 +551,6 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
         }
         
         //}
-        /*
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, minFilter); 
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, magFilter); */
-        
         
         // produce a texture from the byte buffer
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 
@@ -725,7 +575,7 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
         
         texture = timp;
 				        
-	}
+	}*/
 	
 	public void setTexture( String filename ) {
 	//public void setTexture( URL filename ) {
@@ -757,27 +607,32 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 	/*
 	 * Update the orientation of an object
 	 */
-	public void orient( Vector3f objVec, Vector3f targetVec ) {
-		if( objVec.length() != 0 && targetVec.length() != 0 ) {
-			Vector3f dir = new Vector3f();
-			Vector3f.cross( objVec, targetVec, dir );
-			//dir.cross( targetVec, objVec );
-			//System.out.println( "orient cross " + dir );
-			dir.set( ( objVec.y * targetVec.z - objVec.z * targetVec.y ), 
-					 ( objVec.z * targetVec.x - objVec.x * targetVec.z ), 
-					 ( objVec.x * targetVec.y - objVec.y * targetVec.x ) );
-			if( dir.length() != 0 )
-				dir.normalise();
+	public void orient( GLVector objVec, GLVector targetVec ) {
+		if( objVec.magnitude() != 0 && targetVec.magnitude() != 0 ) {
+			GLVector dir = objVec.cross( targetVec );
+
+			dir.set( 0, ( objVec.y() * targetVec.z() - objVec.z() * targetVec.y() ) );
+			dir.set( 1, ( objVec.z() * targetVec.x() - objVec.x() * targetVec.z() ) ); 
+			dir.set( 2, ( objVec.x() * targetVec.y() - objVec.y() * targetVec.x() ) );
+			if( dir.magnitude() != 0 )
+				dir.normalize();
 			//dir.scale( 1.0 / dir.length() );
-			double vdot = Vector3f.dot( targetVec, objVec );
-			vdot = Math.max( Math.min( vdot / ( objVec.length() * targetVec.length() ), 
-									   1.0), -1.0 );
-			//double angle = ( Math.acos( vdot ) * ( Math.PI / 180.0 ) );
+			double vdot = targetVec.x() * objVec.x() + targetVec.y() * objVec.y() + targetVec.z() * objVec.z();  
+
+			vdot = Math.max( Math.min( vdot / ( objVec.magnitude() * targetVec.magnitude() ), 1.0), -1.0 );
+
 			double angle = ( Math.acos( vdot ) * ( 180.0 / Math.PI ) );
-			if( dir.length() == 0 ) 
-				rotation.set( objVec.x, objVec.y, objVec.z, (float)0.001 );
-			else
-				rotation.set( dir.x, dir.y, dir.z, (float)angle );
+			if( dir.magnitude() == 0 ) {
+				rotation.set( 0, objVec.x() );
+				rotation.set( 1, objVec.y() );
+				rotation.set( 2, objVec.z() );
+				rotation.set( 3, (float)0.001 );
+			} else {
+				rotation.set( 0, dir.x() );
+				rotation.set( 1, dir.y() );
+				rotation.set( 2, dir.z() );
+				rotation.set( 3, (float)angle );
+			}
 			//System.out.println( "orient " + objVec + " " + targetVec + " " + dir + " " + vdot + " " + rotation );
 			
 		}
@@ -788,13 +643,13 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 	//		  "Update the kinematics of an object by applying acceleration and velocity for an infinitesimal amount of time."
 		//System.out.print( this );
 		
-		Vector3f f = new Vector3f( acceleration );
-		f.scale( (float) getDoubleMass() );
-		getBody().addForce( f.x, f.y, f.z );
-		orient( new Vector3f(0,0,1), getVelocity() );
-		//orient( new Vector3f(0,1,0), getVelocity() );
-		//orient( new Vector3f(1,0,0), getForce() );
-		//System.out.println( "Object " + uid + " force " + f );
+		GLVector f = new GLVector( acceleration );
+		f.set( 0, f.x() * (float) getDoubleMass() );
+		f.set( 1, f.y() * (float) getDoubleMass() );
+		f.set( 2, f.z() * (float) getDoubleMass() );
+		getBody().addForce( f.x(), f.y(), f.z() );
+		orient( new GLVector(0,0,1), getVelocity() );
+
 	}
 	
 	public int getTextureId() {

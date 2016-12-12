@@ -6,7 +6,6 @@
   (:import (brevis Engine BrPhysics BrObject))
   (:use [brevis vector math utils]
         [brevis.shape core box]        
-        [brevis.graphics multithread]
         [brevis.physics core]))
 
 (defn get-world
@@ -28,26 +27,6 @@
   "Return the mass object for an object."
   [^BrObject obj]
   (.getMass obj))
-
-
-
-#_(defn param-label
-  "Convert a string into an ODE param label."
-  [s]
-  (cond
-    (= s "dParamVel2") dParamVel2
-    (= s "dParamVel") dParamVel
-    (= s "dParamFMax2") dParamFMax2
-    (= s "dParamFMax") dParamFMax
-    (= s "dParamLoStop") dParamLoStop
-    (= s "dParamHiStop") dParamHiStop
-    (= s "dParamFudgeFactor") dParamFudgeFactor))
-
-#_(defn set-joint-param
-  "Set a joint parameter."
-  [joint param-name value]
-  (let [param-fn (cond (= :hinge2 (:joint-type joint)) .dJointSetHinge2Param)]
-    (param-fn (param-label param-name) value)))
 
 ;; # Joints
 

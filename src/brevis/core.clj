@@ -1,10 +1,11 @@
 (ns brevis.core
   (:use [brevis.init]; ew.....
-        [brevis globals utils input osd display vector parameters]
-        [brevis.graphics basic-3D multithread]
+        [brevis globals utils input display vector parameters]
+        [brevis.graphics core]
         [brevis.physics core space utils]
         [brevis.shape core box sphere cone])       
-  (:require [clojure.math.numeric-tower :as math])
+  (:require [clojure.math.numeric-tower :as math]
+            [brevis.graphics.scenery :as scenery])
   (:import (brevis.graphics Basic3D) 
            (brevis BrInput SystemUtils Natives)
            (java.awt AWTException Robot Rectangle Toolkit)
@@ -23,10 +24,25 @@
  []
  (reset! *gui-state* default-gui-state))
 
-;; ## Start a brevis instance
+(defn simulate
+  "The main simulation loop"
+  [initialize update input-setup]
+  (scenery/initialize-scenery)
+  (initialize)
+  (let [ih (scenery.controls.InputHandler. (scenery/get-scene)
+                                           (scenery/get-renderer)
+                                           (scenery/get-hub))]
+    (.useDefaultBindings ih (str (System/getProperty "user.home") "/.brevis.bindings"))
+    (input-setup)
+    (loop []
+      (when-not (.-shouldClose renderer)
+        (if (.-managesRenderLoop renderer) 
+          (java.lang.Thread/sleep 2)
+          (.render renderer))))))
 
-;; Yeesh... There must be a better way than this
-(declare simulate)
+
+
+;; ## Start a brevis instance
 (defn start-gui 
   "Start the simulation with a GUI."
   ([initialize]
@@ -34,10 +50,6 @@
   ([initialize update]
     (start-gui initialize update default-input-handlers))
   ([initialize update input-handlers]
-    (reset! *gui-message-board* (sorted-map))
-    ;; Load graphics dependencies now
-    (use 'brevis.graphics.core)
-    ;;
 	  (reset! *app-thread*
            (Thread. (fn [] (simulate initialize update input-handlers))))
    (.start @*app-thread*)))

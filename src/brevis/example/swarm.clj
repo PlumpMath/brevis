@@ -1,9 +1,10 @@
 (ns brevis.example.swarm
   (:gen-class)
-  (:use [brevis.graphics.basic-3D]
-        [brevis.physics collision core space utils]
+  (:require [brevis.graphics.scenery :as scenery]
+            [brevis.vector :as vector])
+  (:use [brevis.physics collision core space utils]
         [brevis.shape box sphere cone]
-        [brevis core osd vector camera utils display image]))
+        [brevis core vector camera utils display image]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ## Swarm
@@ -15,18 +16,13 @@
 ;; These algorithms were first explored computationally in:
 ;;
 ;;   Reynolds, Craig W. "Flocks, herds and schools: A distributed behavioral model." ACM SIGGRAPH Computer Graphics. Vol. 21. No. 4. ACM, 1987.
-;;
-;; Todo:
-;; - auto-centering of camera (and skybox?)
 ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ## Globals
 
-(def num-birds (atom 2000))
-;(def num-birds (atom 2000))
+(def num-birds (atom 200))
 
 (def avoidance-distance (atom 25))
-;(def boundary 1000)
 (def boundary 300)
 
 (def speed 5)
@@ -171,6 +167,21 @@
 (defn initialize-simulation
   "This is the function where you add everything to the world."
   []  
+  (let [lights (repeatedly 3 #(scenery/make-point-light))]
+    (doall
+      (map-indexed (fn [i light]
+                     (.setPosition light (vec3 (* 2.0 i) (* 2.0 i) (* 2.0 i)))
+                     (.setEmissionColor light (vec3 1.0 0.0 1.0))
+                     (.setIntensity light (* 0.2 (inc i)))
+                     (scenery/add-child light))
+                   lights)))
+  
+  (let [cam (scenery/make-detached-head-camera)]
+    (.setPosition cam (vec3 0.0 0.0 5.0))
+    (.perspectiveCamera cam 50.0 512.0 512.0 0.001 1000.0)
+    (.setActive cam true)
+    (scenery/add-child cam))
+  
   ;(swap! brevis.globals/*gui-state* assoc :gui false)
   (init-world)
   (init-view)  
@@ -187,12 +198,12 @@
   #_(set-dt 0.1)
   
   #_(set-camera-information (vec3 -10.0 -50.0 -200.0) (vec4 1.0 0.0 0.0 0.0))
-  (set-camera-information (vec3 -10.0 57.939613 -890.0) (vec4 1.0 0.0 0.0 0.0))
+  ;(set-camera-information (vec3 -10.0 57.939613 -890.0) (vec4 1.0 0.0 0.0 0.0))
   
   ;(.setParallel *java-engine* true)
   
   #_(disable-skybox)
-  (set-parallel true)
+  ;(set-parallel true)
   
   (set-dt 1)
   (set-neighborhood-radius 50)

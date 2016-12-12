@@ -6,7 +6,6 @@
   (:import (org.lwjgl.util.vector Vector4f Vector3f))
   (:use [brevis vector utils globals]
         [brevis.shape core box]
-        [brevis.graphics multithread]
         [brevis.physics core collision utils])
   (:require [clojure.java.io]))
 
@@ -16,8 +15,6 @@
 (defn make-real
   "Add Real attributes to an object map."
   [obj]  
-  (begin-with-graphics-thread)
-  #_(GL32/glFenceSync GL32/GL_SYNC_GPU_COMMANDS_COMPLETE 0)  
   (let [uid (long (hash (gensym)))        ;; might not be safe
         uid (if (zero? uid) (inc uid) uid); 0 is used as a NIL UID
         obj (assoc obj        
@@ -36,7 +33,6 @@
     (.setType brobj (str (name (:type obj))))
     (.setShape brobj (:shape obj))    
     (.makeReal brobj @*java-engine*)
-    (end-with-graphics-thread)
     brobj))
 
 (defn recreate-physics-geom

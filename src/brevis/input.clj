@@ -1,7 +1,7 @@
 (ns brevis.input
   (:import (brevis BrInput)
            (org.lwjgl.input Keyboard))
-  (:use [brevis globals display utils osd vector]
+  (:use [brevis globals display utils vector]
         [brevis.physics utils]))
 
 (def mouse-translate-speed 100)
@@ -107,9 +107,9 @@ input-class: indicates the class of input. Currently supports (:key-press, :mous
   (add-input-handler :key-press
                      {:key-id "P"}
                      #(swap! *gui-state* assoc :pause (not (:pause @*gui-state*))))
-  (add-input-handler :key-press
-                     {:key-id "O"}
-                     #(screenshot (str "brevis_screenshot_" (System/currentTimeMillis) ".png")))
+  #_(add-input-handler :key-press
+                      {:key-id "O"}
+                      #(screenshot (str "brevis_screenshot_" (System/currentTimeMillis) ".png")))
   (add-input-handler :key-press
                      {:key-id "ESCAPE"}
                      #(swap! *gui-state* assoc :close-requested true))
@@ -117,19 +117,19 @@ input-class: indicates the class of input. Currently supports (:key-press, :mous
                      {:mouse-button "LEFT"}
                      #(.rotateFromLook (:camera @*gui-state*) (- (get-mouse-dy)) (get-mouse-dx) 0)))
 
-(defn osd-view-transformation
-  "Display the current view transformation as an OSD message."
-  []
-  (let [cam (:camera @*gui-state*)
-        t (get-time)]
-    (osd :msg-type :penumbra-rotate 
-         :fn (fn [[dt t] state] (str "Rotation: (" 
-                                     (.roll cam) "," (.pitch cam) "," (.yaw cam) ")")) 
-         :start-t t :stop-t (+ t 1))
-    (osd :msg-type :penumbra-translate 
-         :fn (fn [[dt t] state] (str "Translation: (" 
-                                     (.x cam) "," (.y cam) "," (.z cam) ")"))                                      
-         :start-t t :stop-t (+ t 1))))
+#_(defn osd-view-transformation
+   "Display the current view transformation as an OSD message."
+   []
+   (let [cam (:camera @*gui-state*)
+         t (get-time)]
+     (osd :msg-type :penumbra-rotate 
+          :fn (fn [[dt t] state] (str "Rotation: (" 
+                                      (.roll cam) "," (.pitch cam) "," (.yaw cam) ")")) 
+          :start-t t :stop-t (+ t 1))
+     (osd :msg-type :penumbra-translate 
+          :fn (fn [[dt t] state] (str "Translation: (" 
+                                      (.x cam) "," (.y cam) "," (.z cam) ")"))                                      
+          :start-t t :stop-t (+ t 1))))
 
 ;; ## Input handling
 (defn mouse-drag
@@ -173,7 +173,7 @@ input-class: indicates the class of input. Currently supports (:key-press, :mous
       (cond 
           (pos? dy) (.processKeyboard (:camera @*gui-state*) dx mouse-translate-speed true false false false false false)
           (neg? dy) (.processKeyboard (:camera @*gui-state*) (- dx) mouse-translate-speed false true false false false false)))
-   (osd-view-transformation)
+   #_(osd-view-transformation)
   state))
 
 (defn mouse-wheel
@@ -183,7 +183,7 @@ input-class: indicates the class of input. Currently supports (:key-press, :mous
     (cond 
       (pos? dw) (.processKeyboard (:camera @*gui-state*) dw mouse-translate-speed true false false false false false)
       (neg? dw) (.processKeyboard (:camera @*gui-state*) (- dw) mouse-translate-speed false true false false false false))
-    (osd-view-transformation)
+    #_(osd-view-transformation)
     #_(osd :msg-type :penumbra-rotate 
          :fn (fn [[dt t] state] (str "Rotation: (" 
                                      (:rot-x @*gui-state*) "," (:rot-y @*gui-state*) "," (:rot-z @*gui-state*) ")")) 

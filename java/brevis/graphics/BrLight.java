@@ -50,24 +50,14 @@ public class BrLight {
 	
 	static int[] glLightTable = { GL11.GL_LIGHT0, GL11.GL_LIGHT1, GL11.GL_LIGHT2, GL11.GL_LIGHT3, GL11.GL_LIGHT4, GL11.GL_LIGHT5, GL11.GL_LIGHT6, GL11.GL_LIGHT7 };
 
+	/*
 	public void enable() {
-	    /*GL11.glEnable(GL11.GL_LIGHT1);                                // Enable Light1                                                                      
-	    GL11.glEnable(GL11.GL_LIGHTING);                              // Enable Lighting
-		GL11.glLight(GL11.GL_LIGHT1, GL11.GL_POSITION, light_position );        // Set Light1 Position         
-	    GL11.glLight(GL11.GL_LIGHT1, GL11.GL_AMBIENT, light_ambient );         // Set Light1 Ambience         
-	    GL11.glLight(GL11.GL_LIGHT1, GL11.GL_DIFFUSE, light_diffuse );         // Set Light1 Diffuse          
-	    GL11.glLight(GL11.GL_LIGHT1, GL11.GL_SPECULAR, light_specular );        // Set Light1 Specular*/
-	    
 		GL11.glEnable( glLightTable[glLightId] );                                // Enable Light1                                                                      
 	    GL11.glEnable( GL11.GL_LIGHTING );                              // Enable Lighting
 		GL11.glLight( glLightTable[glLightId], GL11.GL_POSITION, light_position );        // Set Light1 Position         
 	    GL11.glLight( glLightTable[glLightId], GL11.GL_AMBIENT, light_ambient );         // Set Light1 Ambience         
 	    GL11.glLight( glLightTable[glLightId], GL11.GL_DIFFUSE, light_diffuse );         // Set Light1 Diffuse          
 	    GL11.glLight( glLightTable[glLightId], GL11.GL_SPECULAR, light_specular );        // Set Light1 Specular
-	}
-	
-	/*public void setPosition() {
-		GL11.glLight(GL11.GL_LIGHT1, GL11.GL_POSITION, light_position );        // Set Light1 Position         
 	}*/
 	
 	/**

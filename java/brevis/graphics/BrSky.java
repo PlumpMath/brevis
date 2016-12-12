@@ -188,7 +188,7 @@ public class BrSky {
 		}
 	}	
 		
-	static public float SkyboxUnit = 1500f;
+	static public float SkyboxUnit = 3500f;
 	
 	//public void draw() {
 	//public void draw( float x, float y, float z ) {
