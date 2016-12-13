@@ -4,9 +4,7 @@
            [org.lwjgl.opengl GL11]
            [brevis BrObject]
            [brevis.graphics Basic3D BrSky])
-  (:use ;[brevis globals]
-        [brevis.physics utils]
-        #_[brevis.shape core box sphere cone])
+  (:use [brevis.physics utils])
   (:require [clojure.java.io]
             [brevis.parameters :as parameters]
             [brevis.globals :as globals])) 
@@ -47,7 +45,7 @@
   (parameters/set-param :frame-count 0)
   (set-scene (scenery.Scene.))
   (set-hub (scenery.Hub.))
-  ;val preference = System.getProperty("scenery.Renderer", "OpenGLRenderer")
+
   (set-renderer 
     ;(scenery.backends.opengl.OpenGLRenderer. "Brevis" (get-scene) 512 512)
     (scenery.backends.opengl.DeferredLightingRenderer. "Brevis" (get-scene) 512 512)

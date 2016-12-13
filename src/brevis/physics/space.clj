@@ -169,6 +169,7 @@
   [obj v]
   ; Update KDnode for obj
   (.setPosition obj v)
+  (.setPosition (get-mesh (get-shape obj)) v)
   obj)
 
 (defn update-object-kinematics

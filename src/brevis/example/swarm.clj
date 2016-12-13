@@ -188,29 +188,16 @@
   (init-world)
   (init-view)  
   
-  #_(change-skybox
-     ["img/night_skybox/front.jpg"
-      "img/night_skybox/left.jpg"
-      "img/night_skybox/back.jpg"
-      "img/night_skybox/right.jpg"
-      "img/night_skybox/up.jpg"
-      "img/night_skybox/down.jpg"])
   ;(swap! brevis.globals/*gui-state* assoc :gui false)
   #_(.moveFromLook (:camera @brevis.globals/*gui-state*) 0 100 0)
   #_(set-dt 0.1)
   
   #_(set-camera-information (vec3 -10.0 -50.0 -200.0) (vec4 1.0 0.0 0.0 0.0))
   ;(set-camera-information (vec3 -10.0 57.939613 -890.0) (vec4 1.0 0.0 0.0 0.0))
-  
-  ;(.setParallel *java-engine* true)
-  
-  #_(disable-skybox)
-  ;(set-parallel true)
-  
+    
   (set-dt 1)
   (set-neighborhood-radius 50)
-  #_(default-display-text)
-  ;(add-object (move (make-floor 500 500) (vec3 0 (- boundary) 0)))
+
   (dotimes [_ @num-birds]
     (add-object (random-bird))))
 

@@ -2,7 +2,6 @@
 package brevis;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
@@ -14,29 +13,16 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.PriorityQueue;
-import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 
-
-
-
-
-
-
-
 //import org.ejml.data.DenseMatrix64F;
-import org.lwjgl.util.vector.Vector3f;
 import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DJointGroup;
 import org.ode4j.ode.DSpace;
@@ -48,11 +34,8 @@ import org.ode4j.ode.OdeHelper;
 //import org.ojalgo.matrix.BasicMatrix.Factory;
 //import org.ojalgo.matrix.PrimitiveMatrix;
 
-import ags.utils.dataStructures.trees.thirdGenKD.KdTree;
-import clojure.lang.Keyword;
+import cleargl.GLVector;
 import clojure.lang.PersistentVector;
-import duyn.algorithm.nearestneighbours.FastKdTree;
-import duyn.algorithm.nearestneighbours.PrioNode;
 
 public class Engine implements Serializable {	
 	
@@ -655,9 +638,10 @@ public class Engine implements Serializable {
  		for( Map.Entry<Long,BrObject> entry : objects.entrySet() ) {
  			BrObject obj = entry.getValue();
  			//Vector3f pos = obj.getPosition();
- 			Vector3f pos = new Vector3f();
- 			pos = Vector3f.add( obj.getPosition(), obj.getShape().center, pos);
- 			double[] arryloc = { pos.x, pos.y, pos.z };
+ 			GLVector pos = new GLVector();
+ 			//pos = Vector3f.add( obj.getPosition(), obj.getShape().center, pos);
+ 			pos = obj.getPosition().plus( obj.getShape().center );
+ 			double[] arryloc = { pos.x(), pos.y(), pos.z() };
  			BrKDNode n = new BrKDNode( arryloc, entry.getKey() );
  			obj.myKDnode = n;
  			spaceTree.add( n );
@@ -702,8 +686,8 @@ public class Engine implements Serializable {
 	 			BrObject obj = entry.getValue();
 	 			Vector<Long> nbrs = new Vector<Long>();
 	 			
-	 			Vector3f pos = obj.getPosition();
-	 			double[] arryloc = { pos.x, pos.y, pos.z };
+	 			GLVector pos = obj.getPosition();
+	 			double[] arryloc = { pos.x(), pos.y(), pos.z() };
 	 			
 	 			//Iterable<PrioNode<BrKDNode>> itNbrs = spaceTree.search( arryloc, nResults);
 	 			//Iterable<PrioNode<BrKDNode>> itNbrs = spaceTree.searchByDistance( arryloc, neighborhoodRadius );
@@ -716,12 +700,14 @@ public class Engine implements Serializable {
 	 			
 	 			//System.out.println( "---" + obj.uid + "---" );
 	 			
-	 			Vector3f diff = new Vector3f();
+	 			GLVector diff = new GLVector();
 	 			while( itr.hasNext() ) {
 	 				BrKDNode nbr = itr.next();
 	 				nbrs.add( nbr.UID );
-	 				diff = Vector3f.sub( objects.get( nbr.UID ).getPosition(), obj.getPosition(), diff );	 				
-	 				double ldiff = diff.length();
+	 				//diff = Vector3f.sub( objects.get( nbr.UID ).getPosition(), obj.getPosition(), diff );
+	 				diff = objects.get( nbr.UID ).getPosition().minus( obj.getPosition() );
+	 				
+	 				double ldiff = diff.magnitude();
 	 				if ( ( ldiff < closestDistance ) && ( nbr.UID != obj.uid ) ) {
 	 					closestDistance = ldiff;
 	 					closestUID = nbr.UID;
@@ -783,8 +769,8 @@ public class Engine implements Serializable {
 	 		            	BrObject obj = entry.getValue();
 	 			 			Vector<Long> nbrs = new Vector<Long>();
 	 			 			
-	 			 			Vector3f pos = obj.getPosition();
-	 			 			double[] arryloc = { pos.x, pos.y, pos.z };
+	 			 			GLVector pos = obj.getPosition();
+	 			 			double[] arryloc = { pos.x(), pos.y(), pos.z() };
 	 			 			
 	 			 			//Iterable<PrioNode<BrKDNode>> itNbrs = spaceTree.search( arryloc, nResults);
 	 			 			//Iterable<PrioNode<BrKDNode>> itNbrs = spaceTree.searchByDistance( arryloc, neighborhoodRadius );
@@ -797,12 +783,13 @@ public class Engine implements Serializable {
 	 			 			
 	 			 			//System.out.println( "---" + obj.uid + "---" );
 	 			 			
-	 			 			Vector3f diff = new Vector3f();
+	 			 			GLVector diff = new GLVector();
 	 			 			while( itr.hasNext() ) {
 	 			 				BrKDNode nbr = itr.next();
 	 			 				nbrs.add( nbr.UID );
-	 			 				diff = Vector3f.sub( objects.get( nbr.UID ).getPosition(), obj.getPosition(), diff );	 				
-	 			 				double ldiff = diff.length();
+	 			 				//diff = Vector3f.sub( objects.get( nbr.UID ).getPosition(), obj.getPosition(), diff );	 				
+	 			 				diff = objects.get( nbr.UID ).getPosition().minus( obj.getPosition() );
+	 			 				double ldiff = diff.magnitude();
 	 			 				if ( ( ldiff < closestDistance ) && ( nbr.UID != obj.uid ) ) {
 	 			 					closestDistance = ldiff;
 	 			 					closestUID = nbr.UID;
@@ -849,11 +836,11 @@ public class Engine implements Serializable {
 	
 	/*(defn distance-obj-to-line
 			  "Distance of an object to a line."*/
-	public double distanceToLine( Vector3f testPoint, Vector3f linePoint, Vector3f direction ) {
-		Vector3f diff = Vector3f.sub( testPoint, linePoint, null );
-		Vector3f diffXv = Vector3f.cross( diff, direction, null );
-		double ldiff = diff.length();
-		double sinTheta = diffXv.length() / ( ldiff * direction.length() );
+	public double distanceToLine( GLVector pos, GLVector linePoint, GLVector dirVec ) {
+		GLVector diff = pos.minus( linePoint );
+		GLVector diffXv = diff.cross( dirVec );
+		double ldiff = diff.magnitude();
+		double sinTheta = diffXv.magnitude() / ( ldiff * dirVec.magnitude() );
 		return ( ldiff * sinTheta );
 	}
 	
@@ -864,8 +851,8 @@ public class Engine implements Serializable {
 	 */
 	public ArrayList<BrObject> objectsAlongLine( double[] start, double[] direction, double radius ) {
 		ArrayList<BrObject> objs = null;
-		Vector3f linePoint = new Vector3f( (float)start[0], (float)start[1], (float)start[2] );
-		Vector3f dirVec= new Vector3f( (float)direction[0], (float)direction[1], (float)direction[2] );
+		GLVector linePoint = new GLVector( (float)start[0], (float)start[1], (float)start[2] );
+		GLVector dirVec= new GLVector( (float)direction[0], (float)direction[1], (float)direction[2] );
 		lock.lock();  // block until condition holds
 	     try {	 		
 	    	 objs = new ArrayList<BrObject>();
@@ -874,8 +861,8 @@ public class Engine implements Serializable {
 	 		
 	 		for( Map.Entry<Long,BrObject> entry : objects.entrySet() ) {
 	 			BrObject obj = entry.getValue();
-	 			Vector3f pos = obj.getPosition();
-	 			double[] arryloc = { pos.x, pos.y, pos.z };
+	 			GLVector pos = obj.getPosition();
+	 			double[] arryloc = { pos.x(), pos.y(), pos.z() };
 	 			BrKDNode n = new BrKDNode( arryloc, entry.getKey() );
 	 			spaceTree.add( n );
 	 		}				
@@ -884,8 +871,8 @@ public class Engine implements Serializable {
 	 			BrObject obj = entry.getValue();
 	 			Vector<Long> nbrs = new Vector<Long>();
 	 			
-	 			Vector3f pos = obj.getPosition();
-	 			double[] arryloc = { pos.x, pos.y, pos.z };
+	 			GLVector pos = obj.getPosition();
+	 			double[] arryloc = { pos.x(), pos.y(), pos.z() };
 	 			
 	 			//Iterable<PrioNode<BrKDNode>> itNbrs = spaceTree.search( arryloc, nResults);
 	 			//Iterable<PrioNode<BrKDNode>> itNbrs = spaceTree.searchByDistance( arryloc, neighborhoodRadius );
