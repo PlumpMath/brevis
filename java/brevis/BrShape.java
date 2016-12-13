@@ -21,7 +21,6 @@ import org.ode4j.ode.DSpace;
 import org.ode4j.ode.DTriMeshData;
 import org.ode4j.ode.OdeHelper;
 
-import brevis.graphics.BrMesh;
 import cleargl.GLVector;
 import net.imagej.ops.geom.geom3d.mesh.Facet;
 import net.imagej.ops.geom.geom3d.mesh.TriangularFacet;
@@ -55,11 +54,7 @@ public class BrShape implements Serializable {
 	public Object data = null;
 	
 	public GLVector center;
-	
-	// Make final?
-	public static BrMesh unitCone = null;	
-	public static BrMesh unitSphere = null;	
-	
+		
 	private int objectlist;
 	
 	public void resize( GLVector newDim ) {
