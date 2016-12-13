@@ -6,7 +6,8 @@
         [brevis.shape core box]
         [brevis.physics core collision utils])
   (:require [clojure.java.io]
-            [brevis.graphics.scenery :as scenery]))
+            [brevis.graphics.scenery :as scenery]
+            [brevis.parameters :as parameters]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ## Real/Physical/Spatial
@@ -247,17 +248,15 @@ are removed from the simulation. (deprecated)"
 
 (defn java-update-world
   "Update the world (Java engine)."
-  [[dt t] state]  
-  (when (and state
-             (not (:terminated? state)))
+  []  
+  (println "Update world.")
+  (when-not (parameters/get-param :terminated?)
     (when-not @*java-engine*
       (reset! *java-engine*
               (Engine.)))
     (when (and @*java-engine*
-               (not (:paused @*gui-state*)))
-      (.updateWorld ^Engine @*java-engine*)
-      #_(.updateWorld @*java-engine* (double dt)))
-    state))
+               (not (parameters/get-param :paused)))
+      (.updateWorld ^Engine @*java-engine*))))
 
 (defn java-init-world
   "Initialize the world (Java engine)."

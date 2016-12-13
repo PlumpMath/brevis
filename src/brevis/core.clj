@@ -35,12 +35,11 @@
     (.useDefaultBindings ih (str (System/getProperty "user.home") "/.brevis.bindings"))
     (input-setup)
     (loop []
-      (when-not (.getShouldClose (scenery/get-renderer))
-        (if (.getManagesRenderLoop (scenery/get-renderer)) 
-          (java.lang.Thread/sleep 2)
-          (.render renderer))))))
-
-
+      (when-not (.getShouldClose (scenery/get-renderer))        
+        (update)
+        (.render renderer)
+        ;(java.lang.Thread/sleep 2)
+        (recur)))))
 
 ;; ## Start a brevis instance
 (defn start-gui 
@@ -61,9 +60,7 @@
   [state]
   ((:init state))
   (let [write-interval 10]
-    (loop [state (assoc state
-                        :simulation-time 0)
-           t 0
+    (loop [t 0
            twrite 0
            wallwrite (java.lang.System/nanoTime)]
       (if (or (and (:terminated? state)
@@ -73,10 +70,11 @@
           state
           (doseq [dh @destroy-hooks] (dh))
           (System/exit 0))
-        (recur ((:update state) [t (get-dt)] state)
-               (+ t (get-dt))
-               (if (> t (+ twrite write-interval)) t twrite)
-               (if (> t (+ twrite write-interval)) (java.lang.System/nanoTime) wallwrite))))))
+        (do 
+          ((:update state))
+          (recur (+ t (get-dt))
+                 (if (> t (+ twrite write-interval)) t twrite)
+                 (if (> t (+ twrite write-interval)) (java.lang.System/nanoTime) wallwrite)))))))
 
 (defn start-nogui 
   "Start the simulation with a GUI."

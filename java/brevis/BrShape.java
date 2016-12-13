@@ -7,7 +7,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.ode4j.ode.DGeom;
@@ -22,6 +27,7 @@ import net.imagej.ops.geom.geom3d.mesh.Facet;
 import net.imagej.ops.geom.geom3d.mesh.TriangularFacet;
 import net.imagej.ops.geom.geom3d.mesh.Vertex;
 import scenery.Mesh;
+import scenery.Node;
 import scenery.Sphere;
 
 public class BrShape implements Serializable {
@@ -375,7 +381,7 @@ public class BrShape implements Serializable {
 		}
 	}		
 	
-	public DGeom createGeom( DSpace space ) {
+	public DGeom createGeom( DSpace space ) throws Exception {
 		DGeom g;
 		
 		if( mesh != null ) {
@@ -384,20 +390,39 @@ public class BrShape implements Serializable {
 								
 			//new_tmdata.build( mesh.trimeshVertices( new float[]{ (float) dim.x(), (float) dim.y(), (float) dim.z() } ), mesh.trimeshIndices() );
 			
-			float[] vertices = new float[mesh.getVertices().limit() * mesh.getVertexSize()];
-			int[] indices = new int[mesh.getIndices().limit()];
+			if( mesh.getChildren().size() > 1 )
+				throw new Exception();
+			
+			Mesh child = (Mesh)mesh.getChildren().get(0);
+			
+			// Read all vertices, make a hash map and record vertex indices
+			LinkedHashMap<GLVector,Integer> vertHash = new LinkedHashMap<GLVector,Integer>( );// Use hashcodes instead?
+			int[] indices = new int[child.getVertices().limit()];
+			for( int v = 0; v < child.getVertices().limit(); v += 3 ) {				
+				GLVector vector = new GLVector( child.getVertices().get(), child.getVertices().get(), child.getVertices().get() );
+				if( vertHash.containsKey( vector ) )
+					vertHash.put( vector, vertHash.size() + 1 );
+				indices[(int)v/3] = vertHash.get( vector );
+			}
+
+			float[] vertices = new float[vertHash.size() * child.getVertexSize()];
+			
+/*			for( int v = 0; v < vertHash.size(); v++ ) {
+				Set<GLVector> ks = vertHash.keySet();
+				vertices[v] = 
+			}*/
 
 			// Read vertices
 			for( int vidx = 0; vidx < vertices.length; vidx++ ) {
-				vertices[vidx] = mesh.getVertices().get();
+				vertices[vidx] = child.getVertices().get();
 			}
 			
 			// Read indices
 			for( int iidx = 0; iidx < indices.length; iidx++ ) {
-				indices[iidx] = mesh.getIndices().get();
+				indices[iidx] = child.getIndices().get();
 			}
 			
-			new_tmdata.build( vertices, indices );			
+			new_tmdata.build( vertices, null );			
 			
 			g = OdeHelper.createTriMesh(space, new_tmdata, null, null, null);
 			

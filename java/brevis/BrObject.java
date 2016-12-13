@@ -262,7 +262,7 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 		shape = s;
 	}
 	
-	public void makeReal( Engine e ) {
+	public void makeReal( Engine e ) throws Exception {
 		mass = shape.createMass( density );
 		
 		//System.out.println( "makeReal " + shape.getDimension() + " " + density + " " + mass );
@@ -284,7 +284,7 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 		//shape.createVBOFromMesh();
 	}
 	
-	public void recreatePhysicsGeom( Engine e ) {
+	public void recreatePhysicsGeom( Engine e ) throws Exception {
 		// need to remove old geom from body??
 		geom = shape.createGeom( e.physics.getSpace() );
 		geom.setBody( body );
@@ -729,8 +729,8 @@ public class BrObject implements clojure.lang.IPersistentMap, Serializable {
 		return null;
 	}
 
-	public void destroy( Engine e ) {
-		shape.destroy();
+	public void destroy( Engine e ) {		
+		//shape.destroy();
 		//System.out.println( "[A]Number of objects in collision space : " + e.physics.space.getNumGeoms() );
 		e.physics.space.remove( geom );
 		//System.out.println( "[B]Number of objects in collision space : " + e.physics.space.getNumGeoms() );

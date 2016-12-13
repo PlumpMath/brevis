@@ -249,7 +249,7 @@ public class Engine implements Serializable {
 	 * Move according to physics
 	 */
 	public void updatePhysics( double dt ) {
-		lock.lock();  // block until condition holds
+		//lock.lock();  // block until condition holds
 	     try {
 
 	 		physics.contactGroup.empty();
@@ -260,7 +260,7 @@ public class Engine implements Serializable {
 	 		
 	 		physics.time += dt;		
 	     } finally {
-	       lock.unlock();
+	       //lock.unlock();
 	     }
 	}
 	
@@ -332,7 +332,7 @@ public class Engine implements Serializable {
 	 			BrObject placeholder = global_uh.update( this, null, dt );
 	 		}*/		
 	 		
-	 		//System.out.println( "updateObjects " + objects.keySet() );
+	 		System.out.println( "updateObjects " + objects.keySet() );
 	 		for( Map.Entry<Long,BrObject> entry : objects.entrySet() ) {
 	 			BrObject obj = entry.getValue();
 	 			UpdateHandler uh = updateHandlers.get( obj.type );
