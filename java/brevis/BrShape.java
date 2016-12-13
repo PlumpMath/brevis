@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.List;
 
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DMass;
 import org.ode4j.ode.DSpace;
@@ -17,6 +18,9 @@ import org.ode4j.ode.OdeHelper;
 
 import brevis.graphics.BrMesh;
 import cleargl.GLVector;
+import net.imagej.ops.geom.geom3d.mesh.Facet;
+import net.imagej.ops.geom.geom3d.mesh.TriangularFacet;
+import net.imagej.ops.geom.geom3d.mesh.Vertex;
 import scenery.Mesh;
 import scenery.Sphere;
 
@@ -380,7 +384,20 @@ public class BrShape implements Serializable {
 								
 			//new_tmdata.build( mesh.trimeshVertices( new float[]{ (float) dim.x(), (float) dim.y(), (float) dim.z() } ), mesh.trimeshIndices() );
 			
-			System.out.println( "ODE mesh is not being built");
+			float[] vertices = new float[mesh.getVertices().limit() * mesh.getVertexSize()];
+			int[] indices = new int[mesh.getIndices().limit()];
+
+			// Read vertices
+			for( int vidx = 0; vidx < vertices.length; vidx++ ) {
+				vertices[vidx] = mesh.getVertices().get();
+			}
+			
+			// Read indices
+			for( int iidx = 0; iidx < indices.length; iidx++ ) {
+				indices[iidx] = mesh.getIndices().get();
+			}
+			
+			new_tmdata.build( vertices, indices );			
 			
 			g = OdeHelper.createTriMesh(space, new_tmdata, null, null, null);
 			

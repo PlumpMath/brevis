@@ -20,10 +20,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ## Globals
 
-(def num-birds (atom 200))
+(def num-birds (atom 20))
 
 (def avoidance-distance (atom 25))
-(def boundary 300)
+;(def boundary 300)
+(def boundary 100)
 
 (def speed 5)
 (def max-acceleration 10)
@@ -120,6 +121,7 @@
         new-acceleration (if (zero? (length new-acceleration))
                            new-acceleration
                            (mul new-acceleration (/ 1 (length new-acceleration))))]    
+    (println (get-time) bird bird-pos)
     (set-velocity
       (set-acceleration
         (if (or (> (java.lang.Math/abs (x-val bird-pos)) boundary) 
@@ -133,8 +135,6 @@
                (mul new-acceleration speed))))
       (bound-velocity (get-velocity bird)))
       ))
-
-;(add-global-update-handler 10 (fn [] (println (get-time) (System/nanoTime))))
 
 (enable-kinematics-update :bird); This tells the simulator to move our objects
 (add-update-handler :bird fly); This tells the simulator how to update these objects
