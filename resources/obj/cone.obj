@@ -1,7 +1,7 @@
 # This file uses centimeters as units for non-parametric coordinates.
 
 mtllib cone.mtl
-g default
+#g default
 v 1.781426 -1.793669 -0.578820
 v 1.515371 -1.793669 -1.100982
 v 1.100982 -1.793669 -1.515371

@@ -1,20 +1,10 @@
 
 package brevis;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DMass;
 import org.ode4j.ode.DSpace;
@@ -22,12 +12,7 @@ import org.ode4j.ode.DTriMeshData;
 import org.ode4j.ode.OdeHelper;
 
 import cleargl.GLVector;
-import net.imagej.ops.geom.geom3d.mesh.Facet;
-import net.imagej.ops.geom.geom3d.mesh.TriangularFacet;
-import net.imagej.ops.geom.geom3d.mesh.Vertex;
 import scenery.Mesh;
-import scenery.Node;
-import scenery.Sphere;
 
 public class BrShape implements Serializable {
 	/**
@@ -54,8 +39,6 @@ public class BrShape implements Serializable {
 	public Object data = null;
 	
 	public GLVector center;
-		
-	private int objectlist;
 	
 	public void resize( GLVector newDim ) {
 		dim = newDim;
