@@ -35,6 +35,7 @@
     (.makeReal brobj @*java-engine*)
     (when (and (get-shape brobj)
                (get-mesh (get-shape brobj)))
+      (println "Adding child to Scenery.")
       (scenery/add-child (get-mesh (get-shape brobj))))
     brobj))
 
@@ -248,8 +249,7 @@ are removed from the simulation. (deprecated)"
 
 (defn java-update-world
   "Update the world (Java engine)."
-  []  
-  (println "Update world.")
+  []    
   (when-not (parameters/get-param :terminated?)
     (when-not @*java-engine*
       (reset! *java-engine*

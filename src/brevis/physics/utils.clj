@@ -1,9 +1,9 @@
 (ns brevis.physics.utils
-  (:import (org.ode4j.ode OdeHelper DSapSpace OdeConstants DContactBuffer DGeom DFixedJoint DContactJoint))
-  (:import (org.ode4j.math DVector3))
-  (:import (org.lwjgl.util.vector Vector3f Vector4f))
-  (:import java.lang.Math)  
-  (:import (brevis Engine BrPhysics BrObject))
+  (:import [org.ode4j.ode OdeHelper DSapSpace OdeConstants DContactBuffer DGeom DFixedJoint DContactJoint]
+           [org.ode4j.math DVector3]           
+           [cleargl GLVector]
+           [java.lang Math]  
+           [brevis Engine BrPhysics BrObject])
   (:use [brevis vector math utils]
         [brevis.shape core box]        
         [brevis.physics core]))
@@ -64,7 +64,7 @@ axis is the axis about which the joint rotates"
 
 (defn set-velocity
   "Set the velocity of an object"
-  [^BrObject obj ^Vector3f v]
+  [^BrObject obj ^GLVector v]
   (.setVelocity obj v)
   obj)
 
@@ -85,7 +85,7 @@ axis is the axis about which the joint rotates"
 
 (defn set-acceleration
   "Set the acceleration of an object."
-  [^BrObject obj ^Vector3f v]
+  [^BrObject obj ^GLVector v]
   (.setAcceleration obj v)  
   obj)
 
@@ -176,7 +176,7 @@ axis is the axis about which the joint rotates"
 
 (defn set-color
   "Return the color of an object."
-  [^BrObject obj ^Vector4f col]
+  [^BrObject obj ^GLVector col]
   (.setColor obj col)
   obj)
 

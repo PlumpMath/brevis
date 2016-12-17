@@ -1,20 +1,22 @@
 (ns brevis.shape.core
   (:import [java.awt.image BufferedImage]
-           [java.awt Color])
+           [java.awt Color]
+           [cleargl GLVector]
+           [brevis BrShape])
   (:use [brevis vector])
-  (:import [org.lwjgl.util.vector Vector3f Vector4f]))  
+  (:require [brevis.parameters :as parameters]))  
 
 (defn compute-normal
   "Compute the normal for some vertices of an arbitrary polygon."
   [vertices]
   (loop [vidx (range (count vertices))
-         ^Vector3f normal (vec3 0 0 0)]         
+         ^GLVector normal (vec3 0 0 0)]         
     (if (empty? vidx)
       (div normal (length normal))
       ;(mul (div normal (length normal)) -1.0)
       (recur (rest vidx)
-             (let [^Vector3f curr (nth vertices (first vidx))
-                   ^Vector3f next (nth vertices (mod (first vidx) (count vertices)))]
+             (let [^GLVector curr (nth vertices (first vidx))
+                   ^GLVector next (nth vertices (mod (first vidx) (count vertices)))]
                (vec3 (+ (.x normal) (* (- (.y curr) (.y next))
                                        (+ (.z curr) (.z next))))
                      (+ (.y normal) (* (- (.z curr) (.z next))
@@ -37,3 +39,8 @@
   "Return a shape's mesh."
   [shp]
   (.getMesh ^brevis.BrShape shp))
+
+(defn create-instance-shape
+  "Create an instanced shape using an input shape."
+  [^BrShape shp]
+  (BrShape. (get-mesh shp)))

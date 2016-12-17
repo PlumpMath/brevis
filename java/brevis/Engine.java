@@ -256,7 +256,8 @@ public class Engine implements Serializable {
 	 		if( collisionsEnabled ) {
 	 			OdeHelper.spaceCollide( physics.space, null, new BrevisCollision() );
 	 		}
-	 		physics.world.quickStep( dt );						
+	 		//physics.world.quickStep( dt );						
+	 		physics.world.step( dt );						
 	 		
 	 		physics.time += dt;		
 	     } finally {
@@ -332,7 +333,6 @@ public class Engine implements Serializable {
 	 			BrObject placeholder = global_uh.update( this, null, dt );
 	 		}*/		
 	 		
-	 		System.out.println( "updateObjects " + objects.keySet() );
 	 		for( Map.Entry<Long,BrObject> entry : objects.entrySet() ) {
 	 			BrObject obj = entry.getValue();
 	 			UpdateHandler uh = updateHandlers.get( obj.type );

@@ -4,6 +4,7 @@ package brevis;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import org.ode4j.ode.DGeom;
 import org.ode4j.ode.DMass;
@@ -12,6 +13,7 @@ import org.ode4j.ode.DTriMeshData;
 import org.ode4j.ode.OdeHelper;
 
 import cleargl.GLVector;
+import scenery.Material;
 import scenery.Mesh;
 
 public class BrShape implements Serializable {
@@ -116,6 +118,16 @@ public class BrShape implements Serializable {
 		//loadMesh( filename, isResource, withGraphics );
 	}
 	
+	BrShape( BrShape shp ) {		
+		type = BrShapeType.MESH;
+		//createMesh( withGraphics );
+		
+		instancedMesh( shp.getMesh(), true );		
+		
+		computeCenter();
+		//loadMesh( filename, isResource, withGraphics );
+	}
+	
 	/*
 	BrShape( List<GLVector> verts ) {
 		type = BrShapeType.MESH;
@@ -128,7 +140,8 @@ public class BrShape implements Serializable {
 	
 	BrShape( Mesh inMesh ) {
 		type = BrShapeType.MESH;
-		mesh = inMesh;
+		//mesh = inMesh;
+		instancedMesh( inMesh, true );		
 		dim = new GLVector( 1, 1, 1 );
 		computeCenter();
 	}
@@ -350,6 +363,31 @@ public class BrShape implements Serializable {
 			mesh = new Mesh();
 			
 			mesh.readFromOBJ( filename, false );
+			
+			Material mtl = new Material();
+			mtl.setAmbient( new GLVector(1.0f, 0.0f, 0.0f) );
+			mtl.setDiffuse( new GLVector(0.0f, 1.0f, 0.0f) );
+			mtl.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
+			
+			mesh.setMaterial(mtl);
+					
+			dim = new GLVector( 1, 1, 1 );
+			
+			//mesh.opengldrawtolist();
+		} catch( Exception e ) {
+			e.printStackTrace();
+		}
+	}		
+	
+	public void instancedMesh( Mesh inputMesh, boolean withGraphics ) {
+		try {
+
+			mesh = new Mesh();
+			
+			mesh.setName( inputMesh.getName() + "_instanced");
+			
+			mesh.setInstanceOf( inputMesh );
+			mesh.setMaterial( inputMesh.getMaterial() );
 					
 			dim = new GLVector( 1, 1, 1 );
 			
@@ -374,33 +412,28 @@ public class BrShape implements Serializable {
 			Mesh child = (Mesh)mesh.getChildren().get(0);
 			
 			// Read all vertices, make a hash map and record vertex indices
-			LinkedHashMap<GLVector,Integer> vertHash = new LinkedHashMap<GLVector,Integer>( );// Use hashcodes instead?
+			LinkedHashMap<String,Integer> vertHash = new LinkedHashMap<String,Integer>( );// Use hashcodes instead?
 			int[] indices = new int[child.getVertices().limit()];
 			for( int v = 0; v < child.getVertices().limit(); v += 3 ) {				
 				GLVector vector = new GLVector( child.getVertices().get(), child.getVertices().get(), child.getVertices().get() );
-				if( vertHash.containsKey( vector ) )
-					vertHash.put( vector, vertHash.size() + 1 );
-				indices[(int)v/3] = vertHash.get( vector );
+				if( !vertHash.containsKey( vector.toString() ) ) {					
+					vertHash.put( vector.toString(), vertHash.size()  );
+				}
+				indices[(int)v/3] = vertHash.get( vector.toString() );
 			}
 
 			float[] vertices = new float[vertHash.size() * child.getVertexSize()];
 			
-/*			for( int v = 0; v < vertHash.size(); v++ ) {
-				Set<GLVector> ks = vertHash.keySet();
-				vertices[v] = 
-			}*/
+			ArrayList<String> vertList = new ArrayList<String>(vertHash.keySet());
+			for( int v = 0; v < vertList.size(); v++ ) {	
+				String[] parts = vertList.get(v).substring(2, vertList.get(v).length()-2).split(",");
+				vertices[v*3] = Float.parseFloat( parts[0].trim() );
+				vertices[v*3+1] = Float.parseFloat( parts[1].trim() );
+				vertices[v*3+2] = Float.parseFloat( parts[2].trim() );
+			}
+			
 
-			// Read vertices
-			for( int vidx = 0; vidx < vertices.length; vidx++ ) {
-				vertices[vidx] = child.getVertices().get();
-			}
-			
-			// Read indices
-			for( int iidx = 0; iidx < indices.length; iidx++ ) {
-				indices[iidx] = child.getIndices().get();
-			}
-			
-			new_tmdata.build( vertices, null );			
+			new_tmdata.build( vertices, indices );
 			
 			g = OdeHelper.createTriMesh(space, new_tmdata, null, null, null);
 			

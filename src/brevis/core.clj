@@ -6,9 +6,7 @@
         [brevis.shape core box sphere cone])       
   (:require [clojure.math.numeric-tower :as math]
             [brevis.graphics.scenery :as scenery])
-  (:import (brevis.graphics Basic3D) 
-           (brevis BrInput SystemUtils Natives)
-           (java.awt AWTException Robot Rectangle Toolkit)
+  (:import (java.awt AWTException Robot Rectangle Toolkit)
            (java.awt.geom AffineTransform)
            (java.awt.image AffineTransformOp BufferedImage)
            (java.nio ByteBuffer)
@@ -35,9 +33,13 @@
     (.useDefaultBindings ih (str (System/getProperty "user.home") "/.brevis.bindings"))
     (input-setup)
     (loop []
-      (when-not (.getShouldClose (scenery/get-renderer))        
-        (update)
-        (.render renderer)
+      (when-not (.getShouldClose (scenery/get-renderer))
+        (update)        
+        (try 
+          (println "Render timestep " (get-time))
+          (.render (scenery/get-renderer))
+          (java.lang.Thread/sleep 200)
+          (catch Exception e (str "caught exception: " (.getMessage e))))
         ;(java.lang.Thread/sleep 2)
         (recur)))))
 
@@ -49,8 +51,9 @@
   ([initialize update]
     (start-gui initialize update (fn [] nil)))
   ([initialize update input-handlers]
-	  (reset! *app-thread*
-           (Thread. (fn [] (simulate initialize update input-handlers))))
+    (simulate initialize update input-handlers)
+	  #_(reset! *app-thread*
+            (Thread. (fn [] (simulate initialize update input-handlers))))
    (.start @*app-thread*)))
 
 ;; ## Non-graphical simulation loop (may need updating) (comment may need updating)

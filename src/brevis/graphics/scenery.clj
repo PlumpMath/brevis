@@ -21,7 +21,7 @@
 (defn get-renderer
   "Return the Scenery renderer."
   []
-  @globals/renderer)
+  ^scenery.backends.Renderer @globals/renderer)
 
 (defn set-renderer
   "Change the current renderer."
@@ -45,10 +45,16 @@
   (set-scene (scenery.Scene.))
   (set-hub (scenery.Hub.))
 
-  (set-renderer 
+  #_(set-renderer 
+     (scenery.backends.opengl.OpenGLRenderer. "Brevis" (get-scene) 512 512)
+     ;(scenery.backends.opengl.DeferredLightingRenderer. "Brevis" (get-scene) 512 512)
+     #_(scenery.backends.Renderer/createRenderer "Brevis" (get-scene) 512 512))
+  
+  (set-renderer
+    (.createRenderer scenery.backends.Renderer/Companion "Brevis" (get-scene) 512 512)
     ;(scenery.backends.opengl.OpenGLRenderer. "Brevis" (get-scene) 512 512)
-    (scenery.backends.opengl.DeferredLightingRenderer. "Brevis" (get-scene) 512 512)
     #_(scenery.backends.Renderer/createRenderer "Brevis" (get-scene) 512 512))
+  
   (.add (get-hub)
     scenery.SceneryElement/RENDERER
     (get-renderer)))

@@ -24,7 +24,8 @@
                  ;; Images and Physics packages      
                  [funimage/funimage "0.1.92-SNAPSHOT"]
                  [org.ode4j/core "0.2.8"]; 0.3.0 introduced threading issues that are causing problems
-                 [org.ode4j/demo "0.2.8"]; 0.2.9 forces java7
+                 ;[org.ode4j/core "0.2.8"]; 0.3.0 introduced threading issues that are causing problems
+                 ;[org.ode4j/demo "0.2.8"]; 0.2.9 forces java7
                  [com.nitayjoffe.thirdparty.net.robowiki.knn/knn-benchmark "0.1"]; funimage can handle this, factor this out          
                  
                  ;; Graphics packages (3D rendering)

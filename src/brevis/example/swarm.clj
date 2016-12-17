@@ -20,7 +20,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ## Globals
 
-(def num-birds (atom 20))
+(def num-birds (atom 200))
 
 (def avoidance-distance (atom 25))
 ;(def boundary 300)
@@ -28,6 +28,8 @@
 
 (def speed 5)
 (def max-acceleration 10)
+
+(def bird-shape (atom nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ## Birds
@@ -46,16 +48,16 @@
 
 (defn make-bird
   "Make a new bird. At the specified location."
-  [position]  
+  [position shp]  
   (move (make-real {:type :bird
                     :color (vec4 1 0 0 1)
-                    :shape (create-cone 10.2 1.5)})
+                    :shape shp})
         position))
   
 (defn random-bird
   "Make a new random bird."
-  []
-  (make-bird (random-bird-position)))    
+  [shp]
+  (make-bird (random-bird-position) shp))    
 
 (defn bound-acceleration
   "Keeps the acceleration within a reasonable range."
@@ -121,7 +123,6 @@
         new-acceleration (if (zero? (length new-acceleration))
                            new-acceleration
                            (mul new-acceleration (/ 1 (length new-acceleration))))]    
-    (println (get-time) bird bird-pos)
     (set-velocity
       (set-acceleration
         (if (or (> (java.lang.Math/abs (x-val bird-pos)) boundary) 
@@ -197,9 +198,11 @@
     
   (set-dt 1)
   (set-neighborhood-radius 50)
+  
+  (reset! bird-shape (create-cone 10.2 1.5))
 
   (dotimes [_ @num-birds]
-    (add-object (random-bird))))
+    (add-object (random-bird (create-instanced-shape @bird-shape))))
 
 ;; Start zee macheen
 (defn -main [& args]
